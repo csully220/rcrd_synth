@@ -1,19 +1,21 @@
 
-#include "PinDefs.h"
+#include "Input.h"
 #include "Comms.h"
 #include "Menus.h"
 
-int rcbl = 100; //rotary encoder bank limit
+int rcbl = 999; //rotary encoder bank limit
 int rot_enc_ctr = 0;
 int rot_enc_ctr_last = 0;
 int sw_val_last;
+bool msg_ready = false;
+bool rot_enc_was_pressed;
 
 void initInput();
 bool updateInput();
 void rotEncMovedLt();
 void rotEncMovedRt();
 
-SerLCD red_lcd(Serial1,16,2);    //RED ON BLACK LCD
+SerLCD red_lcd(Serial1,16,2);          //RED ON BLACK LCD
 LiquidCrystal_I2C blue_lcd(0x27,20,4); //BLUE ON WHITLE LCD
 Menus menus(red_lcd, blue_lcd);
 
@@ -26,36 +28,60 @@ void setup()
   Serial.begin(9600);
   Serial1.begin(9600);
 
-  menus.init_red();
-  menus.init_blue();
+  menus.initRed();
+  menus.initBlue();
   initInput();
- }
+}
 /*********************************************************/
 void loop() {
   
-  if(updateInput()){
+  if(updateInput() || msg_ready == true){
   
-      menus.disp_knob_vals(knob_values);
-      menus.disp_switch(rot_enc_ctr, sw_values);
-      //delay(10);
+      menus.dispKnobVals(knob_values);
+      
       packKnobData();
       packSwData();
-  
-      //for(int i=0; i<=7; i++){
-      //    Serial.write(output_buf[i]);
-      //}
-      //Serial.print("\n");
+      
+      msg_ready = false;
+
+      /*
+      for(int i=0; i<=7; i++){
+          Serial.write(output_buf[i]);
+      }
+      Serial.print("\n");
+      */
+
+      if(sw_values[6])
+          menus.topMenu();
+
   }  
-    
-  if(rot_enc_ctr != rot_enc_ctr_last){
-      if(rot_enc_ctr < 0)  rot_enc_ctr = rcbl;
-      if(rot_enc_ctr > rcbl) rot_enc_ctr = 0;
-      //menus.disp_wheel(rot_enc_ctr);
-      menus.disp_switch(rot_enc_ctr, sw_values);
-      //menus.disp_top(rot_enc_ctr);
-      rot_enc_ctr_last = rot_enc_ctr;
+  
+
+  if(sw_values[8] && rot_enc_was_pressed == false){
+      rot_enc_was_pressed = true;
+      menus.select();
+      delay(400);
+  } else {
+      rot_enc_was_pressed = false;
   }
-}  
+          
+  if(rot_enc_ctr < rot_enc_ctr_last){
+      if(rot_enc_ctr < 0)  rot_enc_ctr = rcbl;
+      rot_enc_ctr_last = rot_enc_ctr;
+      menus.prevItem();
+  }
+
+  if(rot_enc_ctr > rot_enc_ctr_last){
+      if(rot_enc_ctr > rcbl)  rot_enc_ctr = 0;
+      rot_enc_ctr_last = rot_enc_ctr;
+      menus.nextItem();
+  }
+  
+  if(menus.hasMsg){
+      packMsgByte(menus.getMsgByte());
+      msg_ready = true;
+  }
+}
 
 //Interrupt functions for the rotary encoder
 void rotEncMovedLt(){

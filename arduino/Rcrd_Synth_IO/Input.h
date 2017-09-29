@@ -44,7 +44,7 @@ bool updateInput(){
   byte temp;
 
   for(int i=0; i<=4; i++){
-      temp = analogRead(i)/15;
+      temp = analogRead(i)/15.0;
       if(temp != knob_values[i]){
 	        knob_values[i] = temp;
           changed = true;
@@ -58,6 +58,7 @@ bool updateInput(){
           changed = true;
       }
   }
+  sw_values[8] = !digitalRead(sw_rot_enc_chan);
   return changed;
 }
 
