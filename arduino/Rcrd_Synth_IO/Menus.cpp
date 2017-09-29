@@ -1,19 +1,22 @@
 #include "Menus.h"
 
-    Menus::Menus(SerLCD& ser_lcd, LiquidCrystal_I2C& i2c_lcd): red_lcd(ser_lcd), blue_lcd(i2c_lcd){}
+    Menus::Menus(SerLCD& ser_lcd, LiquidCrystal_I2C& i2c_lcd): red_lcd(ser_lcd), blue_lcd(i2c_lcd){
+      current_menu = TOP;
+      hasMsg = false;
+    }
     
-    void Menus::init_red(){
+    void Menus::initRed(){
         red_lcd.begin();
         red_lcd.clear();
         red_lcd.print("Time to play!");
     }
 
-    void Menus::init_blue(){
+    void Menus::initBlue(){
         blue_lcd.init(); //initialize the lcd
         blue_lcd.backlight(); //open the backlight
     }
    
-    void Menus::disp_knob_vals(byte* knob_values){
+    void Menus::dispKnobVals(byte* knob_values){
         blue_lcd.setCursor(0,0);
         blue_lcd.print(String(knob_values[4]));
         blue_lcd.print("    ");
@@ -31,29 +34,120 @@
         blue_lcd.print("    ");
     }
 
-    void Menus::disp_switch(int index, byte* sw_values){
-        //index = get_safe_index(SWITCHES);
+    /*void Menus::dispSwitch(int index, byte* sw_values){
         red_lcd.clear();
         red_lcd.setPosition(0,0);
         red_lcd.print(sw_names[index]);
         red_lcd.setPosition(2,0);
         red_lcd.print(sw_values[index]);
+    }*/
+
+    void Menus::nextItem(){
+        index++;
+        index = checkBounds(index);
+        changeItem(index);
     }
 
-    void Menus::disp_top(int updn){
-        //index = get_safe_index(TOP);
+    void Menus::prevItem(){
+        index--;
+        index = checkBounds(index);
+        changeItem(index);
+    }
+
+    void Menus::changeItem(int idx){
         red_lcd.clear();
         red_lcd.setPosition(0,0);
-        red_lcd.print(top_options[index]);
+        switch(current_menu){
+          case TOP:
+            red_lcd.print(menu_items_top[idx]);
+          break;
+          case SWITCHES:
+            red_lcd.print(sw_names[idx]);
+          break;
+          case POWEROFF:
+            red_lcd.print(menu_items_pwroff[idx]);
+        }
     }
 
-    void Menus::get_wheel(int val){
-        return val;
+    int Menus::checkBounds(int idx){
+        switch(current_menu){
+          case TOP:
+            if(idx > TOP_NUM_ITEMS-1)
+              idx = 0;
+            else if(idx < 0)
+              idx = TOP_NUM_ITEMS-1;
+          break;
+          case SWITCHES:
+            if(idx > SWITCHES_NUM_ITEMS-1)
+              idx = 0;
+            else if(idx < 0)
+              idx = SWITCHES_NUM_ITEMS-1;
+          break;
+          case POWEROFF:
+            if(idx > PWROFF_NUM_ITEMS-1)
+              idx = 0;
+            else if(idx < 0)
+              idx = PWROFF_NUM_ITEMS-1;
+          break;
+        }
+        return idx;
     }
     
-    void Menus::disp_wheel(int val){
-        red_lcd.clear();
-        red_lcd.setPosition(0,0);
-        red_lcd.print(val);    
+    void Menus::select(){
+      if(current_menu == TOP){
+        switch(index){
+          case 0: //switches
+            changeMenu(SWITCHES);
+          break;
+          case 1: //isolate channel
+            msg_byte = byte(0x01);
+            hasMsg = true;
+          break;
+          case 2: //new song
+            changeMenu(NEWSONG);
+          break;
+          case 3: //poweroff
+            changeMenu(POWEROFF);
+          break;
+        }
+      }
+      else if(current_menu == SWITCHES){
+        return;
+      }
+      else if(current_menu == POWEROFF){
+        if(index == 0){
+          msg_byte = byte(0xFE);
+          hasMsg = true;
+        }
+        else if(index == 1){
+          changeMenu(TOP);
+        }
+      }
+    }
+    
+    void Menus::changeMenu(menu_title new_menu){
+      current_menu = new_menu;
+      index = 0;
+      changeItem(0);
+    }
+
+    byte Menus::getMsgByte(){
+      byte tmp = msg_byte;
+      msg_byte = byte(0x00);
+      hasMsg = false;
+      return tmp;
+    }
+
+    void Menus::topMenu(){
+      if(current_menu != TOP)
+        changeMenu(TOP);
+    }
+    void Menus::switchMenu(){
+      if(current_menu != SWITCHES)
+        changeMenu(SWITCHES);
+    }
+    void Menus::dispInt(int i){
+        red_lcd.setPosition(2,0);
+        red_lcd.print(i);
     }
 

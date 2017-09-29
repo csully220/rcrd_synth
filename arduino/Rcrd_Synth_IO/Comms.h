@@ -1,7 +1,13 @@
 
 
 //initialize the serial output buffer and set the start byte. No other byte can be 0xFF
-byte output_buf[8] = {0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFE};
+
+//output_buf[0]   START BYTE
+//output_buf[1-5] KNOBS
+//output_buf[6]   SWITCHES
+//output_buf[7]   MESSAGE BYTE
+
+byte output_buf[8] = {0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 
 void packKnobData(){
@@ -20,6 +26,10 @@ void packSwData(){
   }
   if(sw_values[7] > 0)
     output_buf[6] |= 1;
+}
+
+void packMsgByte(byte msg){
+  output_buf[7] = msg;
 }
 
 //"12", "7", "AUTO", "START", "33","78", "LEFT", "RIGHT", "ROT ENC", "PROGRAM"
