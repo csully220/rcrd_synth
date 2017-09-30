@@ -38,3 +38,9 @@ class IOInterface:
     def get_knob(self, idx = 0):
         if idx >= 0 and idx <=4:
             return self.knob[idx]
+
+    def close_port():
+        try:
+            self.ser.close()
+        except:
+            pass

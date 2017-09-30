@@ -15,22 +15,22 @@ LOG_FILENAME = 'log'
 logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG, filemode='w', format='(%(threadName)-10s) %(message)s')
 
 io = IOInterface()
-knob0 = 0
-knob1 = 0
-knob2 = 0
-knob3 = 0
-knob4 = 0
-sw_12 = 0
-sw_7 = 0
-sw_auto = 0
-sw_start = 0
-sw_33 = 0
-sw_78 = 0
-sw_left = 0
-sw_right = 0
-sw_rotenc = 0
-sw_prog = 0
-ctrl_val_chg = False    
+knob0=0 
+knob1=0
+knob2=0 
+knob3=0
+sw_12=0
+sw_7=0
+sw_auto=0
+sw_start=0
+sw_33=0
+sw_78=0
+sw_left=0
+sw_right=0
+sw_rotenc=0
+sw_prog=0  
+
+#trl_val_chg = False    
 
 #------------------------------------------------------------------------------- PLAYER THREAD ----------------------------------
 def play_midi():
@@ -94,65 +94,29 @@ def update_control_inputs():
 
     while(1):
         if(io.unpack_serial()):
-            logging.debug('unpacking serial...')
+            logging.debug('Getting new inputs...')
 
-            knob4t = io.get_knob(4)
-            if(knob4 != knob4t):
-                ctrl_val_chg = True
-                knob4 = knob4t
-            knob3t = io.get_knob(3) 
-            if(knob3 != knob3t):
-                ctrl_val_chg = True
-                knob3 = knob3t
-            knob2t = io.get_knob(2) 
-            if(knob2 != knob2t):
-                ctrl_val_chg = True
-                knob2 = knob2t
-            knob1t = io.get_knob(1)
-            if(knob1 != knob1t):
-                ctrl_val_chg = True
-                knob1 = knob1t/10
-            knob0t = io.get_knob(0)
-            if(knob0 != knob0t):
-                ctrl_val_chg = True
-                knob0 = knob0t/10
+            knob4 = io.get_knob(4)/10
+            knob3 = io.get_knob(3)/10 
+            knob2 = io.get_knob(2)/10 
+            knob1 = io.get_knob(1)/10
+            knob0 = io.get_knob(0)/10
 
-            sw_12t = io.get_switch(7)
-            if(sw_12 != sw_12t):
-                ctrl_val_chg = True
-                sw_12 = sw_12t
-            sw_7t  = io.get_switch(6) 
-            if(sw_7 != sw_7t):
-                ctrl_val_chg = True
-                sw_7 = sw_7t
-            sw_autot = io.get_switch(5)
-            if(sw_auto != sw_autot):
-                ctrl_val_chg = True
-                sw_auto = sw_autot
-            sw_startt = io.get_switch(4)
-            if(sw_start != sw_startt):
-                ctrl_val_chg = True
-                sw_start = sw_startt
-            sw_33t = io.get_switch(3)
-            if(sw_33 != sw_33t):
-                ctrl_val_chg = True
-                sw_33 = sw_33t
-            sw_78t = io.get_switch(2)
-            if(sw_78 != sw_78t):
-                ctrl_val_chg = True
-                sw_78 = sw_78t
-            sw_leftt = io.get_switch(1)
-            if(sw_left != sw_leftt):
-                ctrl_val_chg = True
-                sw_left = sw_leftt
-            sw_rightt = io.get_switch(0)
-            if(sw_right != sw_rightt):
-                ctrl_val_chg = True
-                sw_right = sw_rightt
-                if(sw_right):
-                    playing = True
-                else:
-                    playing = False
+            sw_12 = io.get_switch(7)
+            sw_7  = io.get_switch(6) 
+            sw_auto = io.get_switch(5)
+            sw_start = io.get_switch(4)
+            sw_33 = io.get_switch(3)
+            sw_78 = io.get_switch(2)
+            sw_left = io.get_switch(1)
+            sw_right = io.get_switch(0)
+
+            ctrl_val_chg = True
+
+            if(sw_right):
+                playing = True
+            else:
+                playing = False
 
             logging.debug(str(knob4))
             logging.debug(str(knob3))
@@ -311,7 +275,10 @@ while x != ord('q'):
     except KeyboardInterrupt:
         curses.echo()
         curses.endwin()
+        io.close_port()
     except:
         curses.echo()
         curses.endwin()
+        io.close_port()
 curses.endwin()
+io.close_port()
