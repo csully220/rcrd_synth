@@ -8,7 +8,7 @@
     void Menus::initRed(){
         red_lcd.begin();
         red_lcd.clear();
-        red_lcd.print("Time to play!");
+        red_lcd.print("It works    !");
     }
 
     void Menus::initBlue(){

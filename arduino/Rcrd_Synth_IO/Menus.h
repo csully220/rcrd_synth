@@ -1,6 +1,6 @@
-#include <SerLCD.h>
-#include <LiquidCrystal_I2C.h>
 #include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <SerLCD.h>
 
 /// one-based number of menu items
 #define TOP_NUM_ITEMS 4
