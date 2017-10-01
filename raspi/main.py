@@ -9,7 +9,6 @@ from mido import MidiFile
 import re  
 from wolftones import *
 from intf import *
-#import intf
 
 LOG_FILENAME = 'log'
 logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG, filemode='w', format='(%(threadName)-10s) %(message)s')
@@ -29,6 +28,8 @@ sw_left=0
 sw_right=0
 sw_rotenc=0
 sw_prog=0  
+synthmode = 'NONE'
+
 
 #trl_val_chg = False    
 
@@ -41,7 +42,7 @@ def play_midi():
                 while(playing == True):
                     was_playing = True
                     for msg in MidiFile(song_file).play():
-#--------------------  MODIFY THE MESSAGES ON THE FLY  ------------------------
+#--------------------  MODIFY MIDI MESSAGES ON THE FLY  ------------------------
                         if(ctrl_val_chg == True):
                             if(msg.type == 'note_on'):
                                 if(sw_33 and msg.channel == knob1):
@@ -51,7 +52,7 @@ def play_midi():
                                         msg.velocity = 0
                             if(sw_right):
                                 pass
-##################### SEND THE MESSAGE #######################################
+##################### SEND MIDI MESSAGE #######################################
                         output.send(msg)
                         if(playing == False):
                             break
@@ -91,6 +92,7 @@ def update_control_inputs():
     global sw_prog
     global ctrl_val_chg
     global playing
+    global synthmode   
 
     while(1):
         if(io.unpack_serial()):
@@ -111,12 +113,16 @@ def update_control_inputs():
             sw_left = io.get_switch(1)
             sw_right = io.get_switch(0)
 
+            tmp_mode = io.get_mode()
+            if(synthmode != tmp_mode):
+                synthmode = tmp_mode
+
             ctrl_val_chg = True
 
-            if(sw_right):
-                playing = True
-            else:
-                playing = False
+            #if(sw_right):
+                #playing = True
+            #else:
+                #playing = False
 
             logging.debug(str(knob4))
             logging.debug(str(knob3))
@@ -153,7 +159,8 @@ thr_plyr.start()
 thr_inpts.start()
 #thr_ui.start()
 ################################################# END INITIALIZE ############################
-# Main Loop
+
+#------------------------------------------------MAIN LOOP-----------------------------------
 song_file = 'songs/warriorcatssong.mid'
 x = 0
 wt = WolfTones()
@@ -164,14 +171,15 @@ while x != ord('q'):
         screen = curses.initscr()
         screen.clear()
         screen.border(0)
-        screen.addstr(2, 40, "Space to start/stop...")
-        screen.addstr(6, 40, "Playing: " + str(playing))
-        screen.addstr(7, 40, "e - Edit Params")
-        screen.addstr(8, 40, "s - select song")
-        screen.addstr(9, 40, "n - new song")
-        screen.addstr(10, 40, "d - display WolfTones params")
-        screen.addstr(11, 40, "c - display control inputs")
-        screen.addstr(12, 40, "q - Quit")
+        screen.addstr(2, 40, "Mode: " + str(synthmode))
+        screen.addstr(3, 40, "Space to start/stop...")
+        screen.addstr(7, 40, "Playing: " + str(playing))
+        screen.addstr(8, 40, "e - Edit Params")
+        screen.addstr(9, 40, "s - select song")
+        screen.addstr(10, 40, "n - new song")
+        screen.addstr(11, 40, "d - display WolfTones params")
+        screen.addstr(12, 40, "c - display control inputs")
+        screen.addstr(13, 40, "q - Quit")
 
         screen.refresh()
         curses.noecho()
@@ -282,3 +290,5 @@ while x != ord('q'):
         io.close_port()
 curses.endwin()
 io.close_port()
+
+################################################# MAIN LOOP ###################################

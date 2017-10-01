@@ -52,7 +52,7 @@ void loop() {
       
 
       if(sw_values[6])
-          menus.topMenu();
+          menus.dispTopMenu();
 
   }  
   
@@ -77,7 +77,7 @@ void loop() {
       menus.nextItem();
   }
   
-  if(menus.hasMsg){
+  if(menus.has_msg){
       packMsgByte(menus.getMsgByte());
       msg_ready = true;
   }

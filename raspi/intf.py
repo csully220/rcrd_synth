@@ -2,10 +2,18 @@ import serial
 
 class IOInterface:
 
+#define BM_NONE   0x00
+#define BM_ISO_CH 0x02
+#define BM_DLSONG 0x03
+#define BM_PWROFF 0xFE
+
+
     def __init__(self):
         self.ser = serial.Serial('/dev/ttyACM0', 9600)
         self.switch = [0 for i in range(8)]
         self.knob = [0,0,0,0,0]
+        self.msg_byte = b'0x00'
+        self.modes = {b'\x00':'NONE', b'\xFE':'PWROFF', b'\x02':'ISOL_CH', b'\x03':'DL_SONG'}
 
     def get_readline(self):
         return self.ser.readline()
@@ -25,7 +33,8 @@ class IOInterface:
                         self.switch[r] = 1 
                     else:
                         self.switch[r] = 0
-                msg_byte = ord(tmp[7])
+                #self.msg_byte = ord(tmp[7])
+                self.msg_byte = tmp[7]
                 return True
         except:
             self.ser.reset_input_buffer()
@@ -39,7 +48,11 @@ class IOInterface:
         if idx >= 0 and idx <=4:
             return self.knob[idx]
 
-    def close_port():
+    def get_mode(self):
+        return self.modes[self.msg_byte]
+        #return self.msg_byte
+
+    def close_port(self):
         try:
             self.ser.close()
         except:

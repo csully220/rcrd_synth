@@ -1,30 +1,36 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <SerLCD.h>
+#include "types.h"
 
 /// one-based number of menu items
 #define TOP_NUM_ITEMS 4
 #define SWITCHES_NUM_ITEMS 10
 #define PWROFF_NUM_ITEMS 2
+#define DLSONG_NUM_ITEMS 2
+
+//Modes
+#define BM_NONE   0x00
+#define BM_ISO_CH 0x02
+#define BM_DLSONG 0x03
+#define BM_PWROFF 0xFE
+
 
 class Menus
 {
 
 public:
     Menus(SerLCD&, LiquidCrystal_I2C&);
-    bool hasMsg;
+    bool has_msg;
     
     void initRed();
     void initBlue();
-
     void dispKnobVals(byte*);
-    //void dispSwitch(int, byte*);
-
     void nextItem();
     void prevItem();
     void select();
-    void topMenu();
-    void switchMenu();
+    void dispTopMenu();
+    void dispSwitchesMenu();
     void dispInt(int);
     byte getMsgByte();
     
@@ -37,14 +43,11 @@ private:
     char* knob_names[5] = {"KNOB1", "KNOB2", "KNOB3", "KNOB4", "KNOB5"};
     char* menu_items_top[TOP_NUM_ITEMS] = {"Switches", "Isolate Channel", "New Song", "Poweroff" };
     char* menu_items_pwroff[PWROFF_NUM_ITEMS] = {"Confirm", "Cancel"};
-
-    enum menu_title {TOP, SWITCHES, NEWSONG, POWEROFF} current_menu;
+    char* menu_items_dlsong[DLSONG_NUM_ITEMS] = {"Get new song", "Cancel"};
+    e_menu_titles current_menu;
 
     int checkBounds(int);
     void changeItem(int);
-    void changeMenu(menu_title);
-    byte msg_byte; //See README for msg byte definitions
-
-    
+    void changeMenu(e_menu_titles);
+    byte msg_byte; 
 };
-

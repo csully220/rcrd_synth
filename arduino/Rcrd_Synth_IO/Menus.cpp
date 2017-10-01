@@ -2,7 +2,7 @@
 
     Menus::Menus(SerLCD& ser_lcd, LiquidCrystal_I2C& i2c_lcd): red_lcd(ser_lcd), blue_lcd(i2c_lcd){
       current_menu = TOP;
-      hasMsg = false;
+      has_msg = false;
     }
     
     void Menus::initRed(){
@@ -66,6 +66,10 @@
           break;
           case POWEROFF:
             red_lcd.print(menu_items_pwroff[idx]);
+          break;
+          case DLSONG:
+            red_lcd.print(menu_items_dlsong[idx]);
+          break;
         }
     }
 
@@ -89,6 +93,12 @@
             else if(idx < 0)
               idx = PWROFF_NUM_ITEMS-1;
           break;
+          case DLSONG:
+            if(idx > DLSONG_NUM_ITEMS-1)
+              idx = 0;
+            else if(idx < 0)
+              idx = DLSONG_NUM_ITEMS-1;
+          break;
         }
         return idx;
     }
@@ -100,11 +110,13 @@
             changeMenu(SWITCHES);
           break;
           case 1: //isolate channel
-            msg_byte = byte(0x01);
-            hasMsg = true;
+            msg_byte = byte(BM_ISO_CH);
+            has_msg = true;
           break;
           case 2: //new song
-            changeMenu(NEWSONG);
+            changeMenu(DLSONG);
+            msg_byte = byte(BM_DLSONG); 
+            has_msg = true;
           break;
           case 3: //poweroff
             changeMenu(POWEROFF);
@@ -112,12 +124,13 @@
         }
       }
       else if(current_menu == SWITCHES){
+        changeMenu(TOP);
         return;
       }
       else if(current_menu == POWEROFF){
         if(index == 0){
-          msg_byte = byte(0xFE);
-          hasMsg = true;
+          msg_byte = byte(BM_PWROFF);
+          has_msg = true;
         }
         else if(index == 1){
           changeMenu(TOP);
@@ -125,7 +138,7 @@
       }
     }
     
-    void Menus::changeMenu(menu_title new_menu){
+    void Menus::changeMenu(e_menu_titles new_menu){
       current_menu = new_menu;
       index = 0;
       changeItem(0);
@@ -133,16 +146,16 @@
 
     byte Menus::getMsgByte(){
       byte tmp = msg_byte;
-      msg_byte = byte(0x00);
-      hasMsg = false;
+      msg_byte = byte(BM_NONE);
+      has_msg = false;
       return tmp;
     }
 
-    void Menus::topMenu(){
+    void Menus::dispTopMenu(){
       if(current_menu != TOP)
         changeMenu(TOP);
     }
-    void Menus::switchMenu(){
+    void Menus::dispSwitchesMenu(){
       if(current_menu != SWITCHES)
         changeMenu(SWITCHES);
     }

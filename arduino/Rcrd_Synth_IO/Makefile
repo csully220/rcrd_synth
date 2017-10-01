@@ -1,10 +1,15 @@
-ARDUINO_DIR  = /usr/share/arduino/
+ARDUINO_DIR  = /usr/share/arduino
 
-PROJECT_DIR = /home/pi/rcrd_synth/rcrd_synth/arduino/Rcrd_Synth_IO
+ARDMK_DIR = /usr/share/arduino
 
-USER_LIB_PATH += /home/pi/rcrd_synth/rcrd_synth/arduino/Rcrd_Synth_IO/libraries
+PROJECT_DIR = $(HOME)/rcrd_synth/arduino/Rcrd_Synth_IO
 
-ARDUINO_LIBS = SerLCD LiquidCrystal_I2C Wire SoftwareSerial 
+USER_LIB_PATH += $(HOME)/rcrd_synth/arduino/Rcrd_Synth_IO/libraries
+
+ARDUINO_LIB_PATH += /usr/share/arduino/libraries
+
+ARDUINO_LIBS = SerLCD LiquidCrystal_I2C Wire SoftwareSerial
+#ARDUINO_LIBS = Wire SoftwareSerial 
 
 DEVICE_PATH = /dev/ttyACM0
 
@@ -14,7 +19,7 @@ BOARD_TAG    = mega2560
 
 #MONITOR_PORT = /dev/ttyACM0
 
-#MONITOR_BAUDRATE = 9600  
+#MONITOR_BAUDRATE = 9600
 
 ALTERNATE_CORE_PATH = /usr/share/arduino/hardware/arduino
 
