@@ -56,7 +56,7 @@
 
     void Menus::changeItem(int idx){
         red_lcd.clear();
-        red_lcd.setPosition(0,0);
+        red_lcd.setPosition(1,0);
         switch(current_menu){
           case TOP:
             red_lcd.print(menu_items_top[idx]);
@@ -104,38 +104,45 @@
     }
     
     void Menus::select(){
-      if(current_menu == TOP){
-        switch(index){
-          case 0: //switches
-            changeMenu(SWITCHES);
-          break;
-          case 1: //isolate channel
-            msg_byte = byte(BM_ISO_CH);
-            has_msg = true;
-          break;
-          case 2: //new song
-            changeMenu(DLSONG);
-            msg_byte = byte(BM_DLSONG); 
-            has_msg = true;
-          break;
-          case 3: //poweroff
-            changeMenu(POWEROFF);
-          break;
-        }
-      }
-      else if(current_menu == SWITCHES){
-        changeMenu(TOP);
-        return;
-      }
-      else if(current_menu == POWEROFF){
-        if(index == 0){
-          msg_byte = byte(BM_PWROFF);
-          has_msg = true;
-        }
-        else if(index == 1){
+      switch(current_menu) {
+      //if(current_menu == TOP){
+        case TOP:
+          switch(index){
+            case 0: //switches
+              changeMenu(SWITCHES);
+            break;
+            case 1: //isolate channel
+              msg_byte = byte(BM_ISO_CH);
+              has_msg = true;
+            break;
+            case 2: //new song
+              changeMenu(DLSONG);
+              msg_byte = byte(BM_DLSONG); 
+              has_msg = true;
+            break;
+            case 3: //poweroff
+              changeMenu(POWEROFF);
+            break;
+          }
+        case SWITCHES:
           changeMenu(TOP);
-        }
-      }
+          return;
+        case POWEROFF:
+          if(index == 0){
+            msg_byte = byte(BM_PWROFF);
+            has_msg = true;
+          }
+          else if(index == 1)
+            changeMenu(TOP)
+        case DLSONG:
+          if(index == 0){
+            msg_byte = byte(BM_DLSONG);
+            has_msg = true;
+          }
+          else if(index == 1){
+            changeMenu(TOP);
+          }
+        
     }
     
     void Menus::changeMenu(e_menu_titles new_menu){

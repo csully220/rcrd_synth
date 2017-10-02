@@ -13,7 +13,7 @@ class IOInterface:
         self.switch = [0 for i in range(8)]
         self.knob = [0,0,0,0,0]
         self.msg_byte = b'0x00'
-        self.modes = {b'\x00':'NONE', b'\xFE':'PWROFF', b'\x02':'ISOL_CH', b'\x03':'DL_SONG'}
+        self.modes = {b'\x00':'DEFAULT', b'\xFE':'PWROFF', b'\x02':'ISOL_CH', b'\x03':'DL_SONG'}
 
     def get_readline(self):
         return self.ser.readline()

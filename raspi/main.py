@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import os
+import datetime
 import random
 import threading
 import time
@@ -28,34 +30,39 @@ sw_left=0
 sw_right=0
 sw_rotenc=0
 sw_prog=0  
-synthmode = 'NONE'
-
-
-#trl_val_chg = False    
+ctrl_val_chg = False
+synthmode = 'DEFAULT'
 
 #------------------------------------------------------------------------------- PLAYER THREAD ----------------------------------
 def play_midi():
     was_playing = False
+    channels_in_use = []
     with mido.open_output(portname, autoreset=True) as output:
         try:
             while(1):
-                while(playing == True):
+                while(playing == True or sw_right):
                     was_playing = True
                     for msg in MidiFile(song_file).play():
+                        if(msg.type == 'prog'):
+                            channels_in_use.append(msg.channel)
 #--------------------  MODIFY MIDI MESSAGES ON THE FLY  ------------------------
                         if(ctrl_val_chg == True):
                             if(msg.type == 'note_on'):
                                 if(sw_33 and msg.channel == knob1):
                                     msg.note += 7
-                                if(sw_auto):
+                                if(synthmode == 'ISO_CH'):
                                     if(msg.channel != knob0):
                                         msg.velocity = 0
-                            if(sw_right):
-                                pass
+                                if(sw_12):
+                                    if(msg.channel == 9):
+                                        msg.velocity = 0
+                                if(sw_7):
+                                    if(msg.channel == 9):
+                                        msg.velocity = 127
 ##################### SEND MIDI MESSAGE #######################################
                         output.send(msg)
                         if(playing == False):
-                            break
+                            break    
                 if(was_playing == True):
                     output.reset()
                     was_playing = False
@@ -117,6 +124,9 @@ def update_control_inputs():
             if(synthmode != tmp_mode):
                 synthmode = tmp_mode
 
+            if(synthmode == 'PWROFF'):
+                os.system('sudo poweroff')
+
             ctrl_val_chg = True
 
             #if(sw_right):
@@ -124,40 +134,41 @@ def update_control_inputs():
             #else:
                 #playing = False
 
-            logging.debug(str(knob4))
-            logging.debug(str(knob3))
-            logging.debug(str(knob2))
-            logging.debug(str(knob1))
-            logging.debug(str(knob0))
-            logging.debug('12     ' + str(sw_12))
-            logging.debug('7      ' + str(sw_7))
-            logging.debug('auto   ' + str(sw_auto))
-            logging.debug('start  ' + str(sw_start))
-            logging.debug('33     ' + str(sw_33))
-            logging.debug('78     ' + str(sw_78))
-            logging.debug('left   ' + str(sw_left))
-            logging.debug('right  ' + str(sw_right))
+            #logging.debug(str(knob4))
+            #logging.debug(str(knob3))
+            #logging.debug(str(knob2))
+            #logging.debug(str(knob1))
+            #logging.debug(str(knob0))
+            #logging.debug('12     ' + str(sw_12))
+            #logging.debug('7      ' + str(sw_7))
+            #logging.debug('auto   ' + str(sw_auto))
+            #logging.debug('start  ' + str(sw_start))
+            #logging.debug('33     ' + str(sw_33))
+            #logging.debug('78     ' + str(sw_78))
+            #logging.debug('left   ' + str(sw_left))
+            #logging.debug('right  ' + str(sw_right))
         else: 
+            #sleep briefly so we don't eat up processor
             time.sleep(0.03)
 ############################################################################### END INPUTS THREAD ###################################
 
 ################################################### INITIALIZE ############################
-#flag for starting/stopping MIDI file playback
+# flag for starting/stopping MIDI file playback
 playing = False
-#get the portname (system specific)
+
+# get the portname (system specific)
 names = str(mido.get_output_names())
 ports = names.split(',')
 sobj = re.search(r'Synth input port \(\d*:0\)', ports[0], flags=0)
 portname = sobj.group()
-#thread that sends the MIDI to fluidsynth
+
+# threads
 thr_plyr = threading.Thread(name='PLAYER', target=play_midi)
 thr_plyr.setDaemon(True)
 thr_inpts = threading.Thread(name='INPUTS', target=update_control_inputs)
 thr_inpts.setDaemon(True)
-#thr_ui = threading.Thread(name='UI', target=get_usr_input)
 thr_plyr.start()
 thr_inpts.start()
-#thr_ui.start()
 ################################################# END INITIALIZE ############################
 
 #------------------------------------------------MAIN LOOP-----------------------------------
@@ -167,6 +178,7 @@ wt = WolfTones()
 
 
 while x != ord('q'):
+
     try:
         screen = curses.initscr()
         screen.clear()
@@ -183,6 +195,9 @@ while x != ord('q'):
 
         screen.refresh()
         curses.noecho()
+
+        #handle special commands for synthmode
+        #if(synthmode == 'DEFAULT'):
         x = screen.getch()
 
         if x == ord('d'):
@@ -238,21 +253,22 @@ while x != ord('q'):
             curses.echo()
             song_file = 'songs/' + get_param("Choose MIDI file...") + '.mid'
     
-        if x == ord('n'):
+        if x == ord('n') or synthmode == 'DLSONG':
             try:
                 response = wt.send_url_request()
-                #logging.debug(wt.nkm_encoded_url())
+                logging.debug('MIDI file requested from ' + wt.nkm_encoded_url())
                 if(response.content):
                     logging.debug('Got a new song from Wolftones')
                     curses.echo()
-                    tmp = 'songs/' + get_param("Enter song filename: ") + '.mid'
+                    #tmp = 'songs/' + get_param("Enter song filename: ") + '.mid'
+                    tmp = 'songs/song' + '{:%m-%d-%H:%M}'.format(datetime.datetime.now()) + '.mid'
                     with open(tmp, 'w+') as f:
                         f.write(response.content)
                     curses.noecho()
                     song_file = tmp
             except:
                 song_file = 'songs/warriorcatssong.mid'
-             
+            synthmode = 'DEFAULT' 
         if x == ord('e'):
             screen.addstr(25, 2, 'Make selection ')
             curses.echo()
