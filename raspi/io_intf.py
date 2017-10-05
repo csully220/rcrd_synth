@@ -1,5 +1,22 @@
 import serial
 
+knob0=0
+knob1=0
+knob2=0
+knob3=0
+sw_12=0
+sw_7=0
+sw_auto=0
+sw_start=0
+sw_33=0
+sw_78=0
+sw_left=0
+sw_right=0
+sw_rotenc=0
+sw_prog=0
+ctrl_val_chg = False
+synthmode = 'DEFAULT'
+
 class IOInterface:
 
 #define BM_NONE   0x00
