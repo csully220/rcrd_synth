@@ -1,4 +1,7 @@
-def rt_gui_update:
+import wolftones
+
+def rt_gui_update():
+    wt = WolfTones()
     while x != ord('q'):
     
         try:

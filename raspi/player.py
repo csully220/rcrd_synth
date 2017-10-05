@@ -1,8 +1,20 @@
+import mido
 
 def play_midi():
-    was_playing = False
-    channels_in_use = []
+# get the portname (system specific)
+#names = str(mido.get_output_names())
+#logging.debug(names)
+#ports = names.split(',')
+#logging.debug(ports)
+#sobj = re.search(r'Synth input port \(\d*:0\)', ports[0], flags=0)
+#sobj = re.search(r'Midi Through Port-0 \(\d*:0\)', names, flags=0)
+#logging.debug(sobj)
+#portname = sobj.group()
+
+    portname = 'Midi Through:Midi Through Port-0 14:0'
     with mido.open_output(portname, autoreset=True) as output:
+        was_playing = False
+        channels_in_use = []
         try:
             while(1):
                 while(playing == True or sw_right):
@@ -10,7 +22,7 @@ def play_midi():
                     for msg in MidiFile(song_file).play():
                         if(msg.type == 'prog'):
                             channels_in_use.append(msg.channel)
-#--------------------  MODIFY MIDI MESSAGES ON THE FLY  ------------------------
+    #--------------------  MODIFY MIDI MESSAGES ON THE FLY  ------------------------
                         if(ctrl_val_chg == True):
                             if(msg.type == 'note_on'):
                                 if(sw_33 and msg.channel == knob1):
@@ -24,7 +36,7 @@ def play_midi():
                                 if(sw_7):
                                     if(msg.channel == 9):
                                         msg.velocity = 127
-##################### SEND MIDI MESSAGE #######################################
+    ##################### SEND MIDI MESSAGE #######################################
                         output.send(msg)
                         if(playing == False):
                             break

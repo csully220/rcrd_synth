@@ -10,14 +10,15 @@ import mido
 from mido import MidiFile
 import re  
 from wolftones import *
-from io_intf import *
+#from io_intf import *
 from player import *
+from rt_gui import *
 
 LOG_FILENAME = 'log'
 logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG, filemode='w', format='(%(threadName)-10s) %(message)s')
 default_song_file = 'songs/warriorcatssong.mid'
 
-io = IOInterface()
+#io = IOInterface()
             
 def get_param(prompt_string):
     screen.clear()
@@ -72,8 +73,8 @@ def update_control_inputs():
             if(synthmode != tmp_mode):
                 synthmode = tmp_mode
 
-            if(synthmode == 'PWROFF'):
-                os.system('sudo poweroff')
+            #if(synthmode == 'PWROFF'):
+            #    os.system('sudo poweroff')
 
             ctrl_val_chg = True
 
@@ -102,30 +103,27 @@ def update_control_inputs():
 
 ################################################### INITIALIZE ############################
 # flag for starting/stopping MIDI file playback
-playing = False
-
-# get the portname (system specific)
-names = str(mido.get_output_names())
-ports = names.split(',')
-sobj = re.search(r'Synth input port \(\d*:0\)', ports[0], flags=0)
-portname = sobj.group()
+#playing = False
 
 # threads
 thr_plyr = threading.Thread(name='PLAYER', target=play_midi)
+#thr_io_intf = threading.Thread(name='INPUTS', target=update_control_inputs)
+thr_rt_gui = threading.Thread(name='RT_GUI', target=rt_gui_update)
+
 thr_plyr.setDaemon(True)
-thr_io_intf = threading.Thread(name='INPUTS', target=update_control_inputs)
-thr_io_intf.setDaemon(True)
-thr_rt_gui = threading.Thread(name='INPUTS', target=rt_gui_update
+#thr_io_intf.setDaemon(True)
 thr_rt_gui.setDaemon(True)
+
 thr_plyr.start()
-thr_io_intf.start()
+#thr_io_intf.start()
+thr_rt_gui.start()
 ################################################# END INITIALIZE ############################
 
 #------------------------------------------------MAIN LOOP-----------------------------------
 song_file = default_song_file              
 x = 0
 while(1):
-pass
+    pass
 
 
 ################################################# MAIN LOOP ###################################
