@@ -1,4 +1,5 @@
 import serial
+import time
 
 knob0=0
 knob1=0
@@ -24,13 +25,13 @@ class IOInterface:
 #define BM_DLSONG 0x03
 #define BM_PWROFF 0xFE
 
-
     def __init__(self):
         self.ser = serial.Serial('/dev/ttyACM0', 9600)
         self.switch = [0 for i in range(8)]
         self.knob = [0,0,0,0,0]
         self.msg_byte = b'0x00'
         self.modes = {b'\x00':'DEFAULT', b'\xFE':'PWROFF', b'\x02':'ISOL_CH', b'\x03':'DL_SONG'}
+        self.io = IOInterface()
 
     def get_readline(self):
         return self.ser.readline()
@@ -74,3 +75,74 @@ class IOInterface:
             self.ser.close()
         except:
             pass
+
+    def update_control_inputs():
+    
+        global knob0
+        global knob1
+        global knob2
+        global knob3
+        global knob4
+        global sw_12
+        global sw_7
+        global sw_auto
+        global sw_start
+        global sw_33
+        global sw_78
+        global sw_left
+        global sw_right
+        global sw_rotenc
+        global sw_prog
+        global ctrl_val_chg
+    
+    #   global playing
+        global synthmode
+    
+        while(1):
+            if(io.unpack_serial()):
+                logging.debug('Getting new inputs...')
+    
+                knob4 = self.get_knob(4)/10
+                knob3 = self.get_knob(3)/10
+                knob2 = self.get_knob(2)/10
+                knob1 = self.get_knob(1)/10
+                knob0 = self.get_knob(0)/10
+    
+                sw_12 = self.get_switch(7)
+                sw_7  = self.get_switch(6)
+                sw_auto = self.get_switch(5)
+                sw_start = self.get_switch(4)
+                sw_33 = self.get_switch(3)
+                sw_78 = self.get_switch(2)
+                sw_left = self.get_switch(1)
+                sw_right = self.get_switch(0)
+    
+                tmp_mode = self.get_mode()
+    
+                if(synthmode != tmp_mode):
+                    synthmode = tmp_mode
+    
+                #if(synthmode == 'PWROFF'):
+                #    os.system('sudo poweroff')
+                ctrl_val_chg = True
+                #if(sw_right):
+                    #playing = True
+                #else:
+                    #playing = False
+    
+                #logging.debug(str(knob4))
+                #logging.debug(str(knob3))
+                #logging.debug(str(knob2))
+                #logging.debug(str(knob1))
+                #logging.debug(str(knob0))
+                #logging.debug('12     ' + str(sw_12))
+                #logging.debug('7      ' + str(sw_7))
+                #logging.debug('auto   ' + str(sw_auto))
+                #logging.debug('start  ' + str(sw_start))
+                #logging.debug('33     ' + str(sw_33))
+                #logging.debug('78     ' + str(sw_78))
+                #logging.debug('left   ' + str(sw_left))
+                #logging.debug('right  ' + str(sw_right))
+            else:
+                #sleep briefly so we don't eat up processor
+                time.sleep(0.03)

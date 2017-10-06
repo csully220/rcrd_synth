@@ -1,4 +1,11 @@
 import wolftones
+def get_param(prompt_string):
+    screen.clear()
+    screen.border(0)
+    screen.addstr(2, 2, prompt_string)
+    screen.refresh()
+    input = screen.getstr(10, 10, 60)
+    return input
 
 def rt_gui_update():
     wt = WolfTones()
