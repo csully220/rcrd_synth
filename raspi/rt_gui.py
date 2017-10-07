@@ -6,9 +6,8 @@ class RtGuiThread(threading.Thread):
 
     def __init__(self):
         super(RtGuiThread, self).__init__()
-        self.playing = False
+        self.name = 'RtGui'
         self.stoprequest = threading.Event()
-        self.synthmode = None
 
     def get_param(prompt_string):
         screen.clear()
@@ -19,15 +18,37 @@ class RtGuiThread(threading.Thread):
         return input
 
     def run(self):
+
+        global gi_knob0
+        global gi_knob1
+        global gi_knob2
+        global gi_knob3
+        global gi_knob4
+        global gi_sw_12
+        global gi_sw_7
+        global gi_sw_auto
+        global gi_sw_start
+        global gi_sw_33
+        global gi_sw_78
+        global gi_sw_left
+        global gi_sw_right
+        global gi_synthmode
+        global gi_ctrl_val_chg
+
+        gi_playing = False
+        gi_synthmode = 'DEFAULT'
+        #global gi_sw_rotenc
+        #global gi_sw_prog
+
         x = None
         screen = curses.initscr()
         while x != ord('q') and not self.stoprequest.isSet():
             try:
                 screen.clear()
                 screen.border(0)
-                screen.addstr(2, 40, "Mode: " + str(self.synthmode))
+                screen.addstr(2, 40, "Mode: " + str(gi_synthmode))
                 screen.addstr(3, 40, "Space to start/stop...")
-                screen.addstr(7, 40, "Playing: " + str(self.playing))
+                screen.addstr(7, 40, "Playing: " + str(gi_playing))
                 screen.addstr(8, 40, "e - Edit Params")
                 screen.addstr(9, 40, "s - select song")
                 screen.addstr(10, 40, "n - new song")
@@ -41,7 +62,7 @@ class RtGuiThread(threading.Thread):
                 x = screen.getch()
 
                 if x == ord(' '):
-                    self.playing = not self.playing
+                    gi_playing = not gi_playing
                 '''
                 if x == ord('d'):
                     screen.addstr(2, 2, 'Wolfram Tones Parameters')
@@ -77,11 +98,11 @@ class RtGuiThread(threading.Thread):
         curses.endwin()
         
 
-    def join(self, timeout=None):
+#    def join(self, timeout=None):
         #self.stoprequest.set()
         #super(RtGuiThread, self).join(timeout) 
 
-'''
+        '''
  
             if x == ord('c'):
                 screen.addstr(2, 2, 'Control Inputs')
@@ -161,4 +182,4 @@ class RtGuiThread(threading.Thread):
             io.close_port()
     curses.endwin()
     io.close_port()
-'''
+    '''

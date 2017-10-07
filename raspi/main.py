@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 import os
 import datetime
+import time
 import random
 import threading
 import logging
 import curses
+import socket
 import mido  
 from mido import MidiFile
 import re  
-from wolftones import *
-#from io_intf import *
+from wolftones import WolfTones
+from io_intf import IoIntfThread 
 import player
 from player import PlayerThread
 from rt_gui import RtGuiThread
@@ -22,8 +24,46 @@ knobs = {'knob1':0, 'knob2':0,'knob3':0,'knob4':0,'knob5':0}
 switches = {'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0}
 
 ################################################### INITIALIZE ############################
-#io = IOInterface()
-thr_player = PlayerThread('server', default_songfile, knobs, switches)
+gi_knob0=0
+gi_knob1=0
+gi_knob2=0
+gi_knob3=0
+gi_sw_12=0
+gi_sw_7=0
+gi_sw_auto=0
+gi_sw_start=0
+gi_sw_33=0
+gi_sw_78=0
+gi_sw_left=0
+gi_sw_right=0
+#gi_sw_rotenc=0
+#gi_sw_prog=0
+gi_synthmode='DEFAULT'
+gi_playing=False     
+gi_ctrl_val_chg = False
+
+io_knob0=0
+io_knob1=0
+io_knob2=0
+io_knob3=0
+io_sw_12=0
+io_sw_7=0
+io_sw_auto=0
+io_sw_start=0
+io_sw_33=0
+io_sw_78=0
+io_sw_left=0
+io_sw_right=0
+#io_sw_rotenc=0
+#io_sw_prog=0
+io_synthmode='DEFAULT'
+io_playing=False     
+io_ctrl_val_chg = False
+
+
+env = socket.gethostname()
+
+thr_player = PlayerThread(env, default_songfile)
 thr_player.setDaemon(True)
 thr_player.start()
 
@@ -31,19 +71,22 @@ thr_rtgui = RtGuiThread()
 thr_rtgui.setDaemon(True)
 thr_rtgui.start()
 
-#thr_io_intf = threading.Thread(name='INPUTS', target=update_control_inputs)
-#thr_io_intf.setDaemon(True)
-#thr_io_intf.start()
+if(env == 'rcrd_synth'):
+    thr_iointf = IoIntfThread()
+    thr_iointf.setDaemon(True)
+    thr_iointf.start()
 
 x = None
 wt = WolfTones()
-#synthmode = 'DEFAULT'
-#playing = False
-
+synthmode = 'DEFAULT'
+playing = False
 ################################################# END INITIALIZE ############################
 
-#------------------------------------------------MAIN LOOP-----------------------------------
 
+
+
+#------------------------------------------------MAIN LOOP-----------------------------------
+#time.sleep(10)
 thr_rtgui.join()
 
 

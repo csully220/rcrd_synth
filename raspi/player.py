@@ -3,13 +3,13 @@ import threading
 
 class PlayerThread(threading.Thread):
     
-    def __init__(self, s_env, s_filepath, knobs, switches):
+    def __init__(self, s_env, s_filepath):
         super(PlayerThread, self).__init__()
         self.stoprequest = threading.Event()
         self.playing = False
         self.songfile = s_filepath
-        if(s_env == 'pi'):
-            #get the portname (system specific)
+        #get the portname (system specific)
+        if(s_env == 'rcrd_synth'):
             names = str(mido.get_output_names())
             logging.debug(names)
             ports = names.split(',')
@@ -18,7 +18,7 @@ class PlayerThread(threading.Thread):
             sobj = re.search(r'Midi Through Port-0 \(\d*:0\)', names, flags=0)
             #logging.debug(sobj)
             portname = sobj.group()
-        if(s_env == 'server'):
+        if(s_env == 'colinsullivan.me'):
             portname = 'Midi Through:Midi Through Port-0 14:0'
 
     def join(self, timeout=None):
