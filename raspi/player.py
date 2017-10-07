@@ -1,8 +1,11 @@
 import mido
+import threading
 
-class Player:
+class PlayerThread(threading.Thread):
     
-    def __init__(s_env, s_filepath, knobs, switches):
+    def __init__(self, s_env, s_filepath, knobs, switches):
+        super(PlayerThread, self).__init__()
+        self.stoprequest = threading.Event()
         self.playing = False
         self.songfile = s_filepath
         if(s_env == 'pi'):
@@ -18,22 +21,27 @@ class Player:
         if(s_env == 'server'):
             portname = 'Midi Through:Midi Through Port-0 14:0'
 
-    def start():
+    def join(self, timeout=None):
+        self.stoprequest.set()
+        super(WorkerThread, self).join(timeout)
+
+    def start(self):
         self.playing == True
-    def stop():
+
+    def stop(self):
         self.playing == False
 
-    def change_song(filepath):
+    def change_song(self, filepath):
         self.stop()
         sleep(0.3)
         self.songfile = filepath
 
-    def play_midi_loop():
+    def run(self):
         with mido.open_output(portname, autoreset=True) as output:
             was_playing = False
             #channels_in_use = []
             try:
-                while(1):
+                while not self.stoprequest.isSet():
                     while(self.playing == True or sw_right):
                         was_playing = True
                         for msg in MidiFile(self.songfile).play():
