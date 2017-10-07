@@ -9,22 +9,21 @@ import mido
 from mido import MidiFile
 import re  
 from wolftones import *
-from io_intf import *
+#from io_intf import *
 from player import *
 from rt_gui import *
 
 LOG_FILENAME = 'log'
 logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG, filemode='w', format='(%(threadName)-10s) %(message)s')
-default_song_file = 'songs/warriorcatssong.mid'
+default_songfile = 'songs/warriorcatssong.mid'
 
-io = IOInterface()
-
+#io = IOInterface()
+obj_player = Player('server', default_songfile)
+obj_rtgui = RtGui()
 ################################################### INITIALIZE ############################
 # flag for starting/stopping MIDI file playback
-#playing = False
-
 # threads
-thr_plyr = threading.Thread(name='PLAYER', target=play_midi)
+thr_plyr = threading.Thread(name='PLAYER', target=obj_player.play_midi_loop)
 #thr_io_intf = threading.Thread(name='INPUTS', target=update_control_inputs)
 thr_rt_gui = threading.Thread(name='RT_GUI', target=rt_gui_update)
 

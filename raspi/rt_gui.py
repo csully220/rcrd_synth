@@ -1,4 +1,5 @@
 import wolftones
+
 def get_param(prompt_string):
     screen.clear()
     screen.border(0)
