@@ -1,7 +1,8 @@
 import serial
 import time
+import threading
 
-class IoIntfThread:
+class IoIntfThread(threading.Thread):
 
 #define BM_NONE   0x00
 #define BM_ISO_CH 0x02
@@ -62,7 +63,7 @@ class IoIntfThread:
             pass
 
 
-    def run():
+    def run(self):
         global io_knob0
         global io_knob1
         global io_knob2
@@ -82,9 +83,10 @@ class IoIntfThread:
         global io_playing
         global io_synthmode
     
-        while(not self.stoprequest.isSet()):
+        #while(not self.stoprequest.isSet()):
+        while(1):
             if(self.unpack_serial()):
-                logging.debug('Getting new inputs...')
+                #logging.debug('Getting new inputs...')
     
                 io_knob4 = self.get_knob(4)/10
                 io_knob3 = self.get_knob(3)/10
@@ -103,8 +105,8 @@ class IoIntfThread:
     
                 tmp_mode = self.get_mode()
     
-                if(io_synthmode != tmp_mode):
-                    io_synthmode = tmp_mode
+   #            if(io_synthmode != tmp_mode):
+   #                io_synthmode = tmp_mode
     
                 #if(synthmode == 'PWROFF'):
                 #    os.system('sudo poweroff')

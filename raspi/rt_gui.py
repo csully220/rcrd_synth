@@ -7,7 +7,7 @@ class RtGuiThread(threading.Thread):
     def __init__(self):
         super(RtGuiThread, self).__init__()
         self.name = 'RtGui'
-        self.stoprequest = threading.Event()
+        self.stoprequest = False
 
     def get_param(prompt_string):
         screen.clear()
@@ -40,29 +40,52 @@ class RtGuiThread(threading.Thread):
         #global gi_sw_rotenc
         #global gi_sw_prog
 
-        x = None
         screen = curses.initscr()
-        while x != ord('q') and not self.stoprequest.isSet():
+        while self.stoprequest == False:
             try:
-                screen.clear()
-                screen.border(0)
-                screen.addstr(2, 40, "Mode: " + str(gi_synthmode))
-                screen.addstr(3, 40, "Space to start/stop...")
-                screen.addstr(7, 40, "Playing: " + str(gi_playing))
-                screen.addstr(8, 40, "e - Edit Params")
-                screen.addstr(9, 40, "s - select song")
-                screen.addstr(10, 40, "n - new song")
-                screen.addstr(11, 40, "d - display WolfTones params")
-                screen.addstr(12, 40, "c - display control inputs")
-                screen.addstr(13, 40, "q - Quit")
-        
+                '''
+                screen.addstr(2, 4, 'GUI Inputs')
+                screen.addstr(5, 4, '12             ' + str(sw_12))
+                screen.addstr(6, 4, '7              ' + str(sw_7))
+                screen.addstr(7, 4, 'AUTO           ' + str(sw_auto))
+                screen.addstr(8, 4, 'START          ' + str(sw_start))
+                screen.addstr(9, 4, '33             ' + str(sw_33))
+                screen.addstr(10, 4,'78             ' + str(sw_78))
+                screen.addstr(11, 4,'LEFT           ' + str(sw_left))
+                screen.addstr(12, 4,'RIGHT          ' + str(sw_right))
+                screen.addstr(13, 4,'KNOB1          ' + str(knob0))
+                screen.addstr(14, 4,'KNOB2           ' + str(knob1))
+                screen.addstr(15, 4,'KNOB3           ' + str(knob2))
+                screen.addstr(16, 4,'KNOB4           ' + str(knob3))
+                screen.addstr(17, 4,'KNOB5           ' + str(knob4))
                 screen.refresh()
-                curses.noecho()
-        
-                x = screen.getch()
+                '''
+                curses.echo()
+                screen.addstr(20, 4, 'RcrdSynth: ')
+                s_raw = screen.getstr(21,13)
+                screen.clear()
+                toks = list(str.split(s_raw))
+                #commands with no argument
+                #if(toks.len() == 1):
+                tok0 = toks[0]
+                if(tok0 == 'quit'):
+                    self.stoprequest = True
+                    screen.addstr(19, 4, 'quitting...')
 
-                if x == ord(' '):
-                    gi_playing = not gi_playing
+                elif(tok0 == 'sync'):
+                     syncmode = True;
+                     curses.noecho() 
+                     curses.halfdelay(2)
+                     while(syncmode):
+                         char = screen.getch()        # This blocks (waits) until the time has elapsed,
+                         screen.clear()                          # or there is input to be handled
+                         if(char != curses.ERR):    # This is true if the user pressed something
+                             if(char == ord('q')):
+                                 curses.nocbreak()
+                                 syncmode = False
+                         else:  
+                             screen.addstr(12, 4, "Syncmode!!!!!!!!!!!!!!!!!!!")
+
                 '''
                 if x == ord('d'):
                     screen.addstr(2, 2, 'Wolfram Tones Parameters')
