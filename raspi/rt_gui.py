@@ -1,5 +1,6 @@
 import wolftones
 import threading
+import logging  
 import curses
 
 class RtGuiThread(threading.Thread):
@@ -18,7 +19,7 @@ class RtGuiThread(threading.Thread):
         return input
 
     def run(self):
-
+        logging.debug('Running GuiThread')
         global gi_knob0
         global gi_knob1
         global gi_knob2
@@ -35,6 +36,23 @@ class RtGuiThread(threading.Thread):
         global gi_synthmode
         global gi_ctrl_val_chg
 
+        gi_knob0 = 0
+        gi_knob1 = 0 
+        gi_knob2 = 0 
+        gi_knob3 = 0 
+        gi_knob4 = 0 
+        gi_sw_12 = 0 
+        gi_sw_7 = 0 
+        gi_sw_auto = 0 
+        gi_sw_start = 0 
+        gi_sw_33 = 0 
+        gi_sw_78 = 0 
+        gi_sw_left = 0 
+        gi_sw_right = 0 
+        gi_synthmode = 0 
+        gi_ctrl_val_chg = 0
+
+        gi_sw_12 = 0
         gi_playing = False
         gi_synthmode = 'DEFAULT'
         #global gi_sw_rotenc
@@ -43,48 +61,96 @@ class RtGuiThread(threading.Thread):
         screen = curses.initscr()
         while self.stoprequest == False:
             try:
-                '''
+
                 screen.addstr(2, 4, 'GUI Inputs')
-                screen.addstr(5, 4, '12             ' + str(sw_12))
-                screen.addstr(6, 4, '7              ' + str(sw_7))
-                screen.addstr(7, 4, 'AUTO           ' + str(sw_auto))
-                screen.addstr(8, 4, 'START          ' + str(sw_start))
-                screen.addstr(9, 4, '33             ' + str(sw_33))
-                screen.addstr(10, 4,'78             ' + str(sw_78))
-                screen.addstr(11, 4,'LEFT           ' + str(sw_left))
-                screen.addstr(12, 4,'RIGHT          ' + str(sw_right))
-                screen.addstr(13, 4,'KNOB1          ' + str(knob0))
-                screen.addstr(14, 4,'KNOB2           ' + str(knob1))
-                screen.addstr(15, 4,'KNOB3           ' + str(knob2))
-                screen.addstr(16, 4,'KNOB4           ' + str(knob3))
-                screen.addstr(17, 4,'KNOB5           ' + str(knob4))
-                screen.refresh()
-                '''
+                screen.addstr(5, 4, '12     ' + str(gi_sw_12))
+                screen.addstr(6, 4, '7      ' + str(gi_sw_7))
+                screen.addstr(7, 4, 'AUTO   ' + str(gi_sw_auto))
+                screen.addstr(8, 4, 'START  ' + str(gi_sw_start))
+                screen.addstr(9, 4, '33     ' + str(gi_sw_33))
+                screen.addstr(10, 4,'78     ' + str(gi_sw_78))
+                screen.addstr(11, 4,'LEFT   ' + str(gi_sw_left))
+                screen.addstr(12, 4,'RIGHT  ' + str(gi_sw_right))
+                screen.addstr(13, 4,'KNOB0  ' + str(gi_knob0))
+                screen.addstr(14, 4,'KNOB1  ' + str(gi_knob1))
+                screen.addstr(15, 4,'KNOB2  ' + str(gi_knob2))
+                screen.addstr(16, 4,'KNOB3  ' + str(gi_knob3))
+                screen.addstr(17, 4,'KNOB4  ' + str(gi_knob4))
+
+                screen.addstr(25, 4, 'RcrdSynth: ')
+
                 curses.echo()
-                screen.addstr(20, 4, 'RcrdSynth: ')
-                s_raw = screen.getstr(21,13)
+                s_raw = screen.getstr(25,15)
                 screen.clear()
                 toks = list(str.split(s_raw))
                 #commands with no argument
-                #if(toks.len() == 1):
-                tok0 = toks[0]
-                if(tok0 == 'quit'):
-                    self.stoprequest = True
-                    screen.addstr(19, 4, 'quitting...')
+                if(len(toks) == 1):
+                    tok0 = toks[0]
+                    if(tok0 == 'quit' or tok0 == 'q'):
+                        self.stoprequest = True
+                        screen.addstr(19, 4, 'quitting...')
+                    if(tok0 == '12'):
+                        gi_sw_12 = not gi_sw_12
+                        gi_ctrl_val_chg = True
+                    if(tok0 == '7'):
+                        gi_sw_7 = not gi_sw_7
+                        gi_ctrl_val_chg = True
+                    if(tok0 == 'auto'):
+                        gi_sw_auto = not gi_sw_auto
+                        gi_ctrl_val_chg = True
+                    if(tok0 == 'start'):
+                        gi_sw_start = not gi_sw_start
+                        gi_ctrl_val_chg = True
+                    if(tok0 == '33'):
+                        gi_sw_33 = not gi_sw_33
+                        gi_ctrl_val_chg = True
+                    if(tok0 == '78'):
+                        gi_sw_78 = not gi_sw_78
+                        gi_ctrl_val_chg = True
+                    if(tok0 == 'right'):
+                        gi_sw_right = not gi_sw_right
+                        gi_ctrl_val_chg = True
+                    if(tok0 == 'left'):
+                        gi_sw_left = not gi_sw_left
+                        gi_ctrl_val_chg = True
 
-                elif(tok0 == 'sync'):
-                     syncmode = True;
-                     curses.noecho() 
-                     curses.halfdelay(2)
-                     while(syncmode):
-                         char = screen.getch()        # This blocks (waits) until the time has elapsed,
-                         screen.clear()                          # or there is input to be handled
-                         if(char != curses.ERR):    # This is true if the user pressed something
-                             if(char == ord('q')):
-                                 curses.nocbreak()
-                                 syncmode = False
-                         else:  
-                             screen.addstr(12, 4, "Syncmode!!!!!!!!!!!!!!!!!!!")
+                    elif(tok0 == 'rt'):
+                         syncmode = True
+                         curses.noecho() 
+                         curses.halfdelay(2)
+                         while(syncmode):
+                             char = screen.getch()        # This blocks (waits) until the time has elapsed,
+                             screen.clear()                          # or there is input to be handled
+                             if(char != curses.ERR):    # This is true if the user pressed something
+                                 if(char == ord('q')):
+                                     curses.nocbreak()
+                                     syncmode = False
+                                 if(char == ord(' ')):
+                                     gi_playing = not gi_playing
+                                     gi_ctrl_val_chg = True
+                             else:  
+                                 screen.addstr(12, 4, "Playing: " + str(gi_playing))
+                if(len(toks) == 3): 
+                    tok0 = toks[0]
+                    tok1 = toks[1] 
+                    tok2 = toks[2] 
+                    if(tok0 == 'knob'):
+                        if(tok1 in ['0', '1', '2', '3', '4']):
+                            if(tok1 == '0'):
+                                gi_knob0 = int(tok2)
+                                gi_ctrl_val_chg = True
+                            if(tok1 == '1'):
+                                gi_knob1 = int(tok2)
+                                gi_ctrl_val_chg = True
+                            if(tok1 == '2'):
+                                gi_knob2 = int(tok2)
+                                gi_ctrl_val_chg = True
+                            if(tok1 == '3'):
+                                gi_knob3 = int(tok2)
+                                gi_ctrl_val_chg = True
+                            if(tok1 == '4'):
+                                gi_knob4 = int(tok2)
+                                gi_ctrl_val_chg = True
 
                 '''
                 if x == ord('d'):

@@ -2,6 +2,7 @@ import mido
 import threading
 import re
 import random
+import logging
 
 class PlayerThread(threading.Thread):
     
@@ -13,7 +14,7 @@ class PlayerThread(threading.Thread):
         #get the portname (system specific)
         if(s_env == 'record_synth'):
             names = str(mido.get_output_names())
-            #logging.debug(names)
+            logging.debug(names)
             ports = names.split(',')
             #logging.debug(ports)
             sobj = re.search(r'Synth input port \(\d*:0\)', ports[0], flags=0)

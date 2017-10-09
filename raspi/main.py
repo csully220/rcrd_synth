@@ -13,10 +13,11 @@ from rt_gui import RtGuiThread
 
 LOG_FILENAME = 'log'
 logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG, filemode='w', format='(%(threadName)-10s) %(message)s')
+#obj_log = logging.getLogger('rcrd_synth')
 default_songfile = 'songs/warriorcatssong.mid'
 
-knobs = {'knob1':0, 'knob2':0,'knob3':0,'knob4':0,'knob5':0}
-switches = {'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0}
+io_ctrls = {'knob1':0, 'knob2':0,'knob3':0,'knob4':0,'knob5':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'playing':False, 'ctrl_val_chg':False}
+gi_ctrls = pl_ctrls = io_ctrls
 
 ################################################### INITIALIZE ############################
 gi_knob0=0
@@ -103,6 +104,7 @@ while(thr_rtgui.isAlive()): #and thr_iointf.isAlive()):
         io_ctrl_val_chg = False
 
     if(gi_ctrl_val_chg):
+        logging.debug('GI  controls changed')
         pl_knob0 = gi_knob0
         pl_knob1 = gi_knob1
         pl_knob2 = gi_knob2
