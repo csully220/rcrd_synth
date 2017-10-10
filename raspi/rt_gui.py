@@ -5,10 +5,11 @@ import curses
 
 class RtGuiThread(threading.Thread):
 
-    def __init__(self):
+    def __init__(self, q_gui):
         super(RtGuiThread, self).__init__()
         self.name = 'RtGui'
         self.stoprequest = False
+        self.out_q = q_gui
 
     def get_param(prompt_string):
         screen.clear()
@@ -20,21 +21,6 @@ class RtGuiThread(threading.Thread):
 
     def run(self):
         logging.debug('Running GuiThread')
-        global gi_knob0
-        global gi_knob1
-        global gi_knob2
-        global gi_knob3
-        global gi_knob4
-        global gi_sw_12
-        global gi_sw_7
-        global gi_sw_auto
-        global gi_sw_start
-        global gi_sw_33
-        global gi_sw_78
-        global gi_sw_left
-        global gi_sw_right
-        global gi_synthmode
-        global gi_ctrl_val_chg
 
         gi_knob0 = 0
         gi_knob1 = 0 
@@ -49,11 +35,9 @@ class RtGuiThread(threading.Thread):
         gi_sw_78 = 0 
         gi_sw_left = 0 
         gi_sw_right = 0 
-        gi_synthmode = 0 
-        gi_ctrl_val_chg = 0
-
-        gi_sw_12 = 0
         gi_playing = False
+        gi_synthmode = 0 
+
         gi_synthmode = 'DEFAULT'
         #global gi_sw_rotenc
         #global gi_sw_prog
@@ -91,28 +75,31 @@ class RtGuiThread(threading.Thread):
                         screen.addstr(19, 4, 'quitting...')
                     if(tok0 == '12'):
                         gi_sw_12 = not gi_sw_12
-                        gi_ctrl_val_chg = True
+                        self.out_q.put({'sw_12':gi_sw_12})
                     if(tok0 == '7'):
                         gi_sw_7 = not gi_sw_7
-                        gi_ctrl_val_chg = True
+                        self.out_q.put({'sw_7':gi_sw_7})
                     if(tok0 == 'auto'):
                         gi_sw_auto = not gi_sw_auto
-                        gi_ctrl_val_chg = True
+                        self.out_q.put({'sw_auto':gi_sw_auto})
                     if(tok0 == 'start'):
                         gi_sw_start = not gi_sw_start
-                        gi_ctrl_val_chg = True
+                        self.out_q.put({'sw_start':gi_sw_start})
                     if(tok0 == '33'):
                         gi_sw_33 = not gi_sw_33
-                        gi_ctrl_val_chg = True
+                        self.out_q.put({'sw_33':gi_sw_33})
                     if(tok0 == '78'):
                         gi_sw_78 = not gi_sw_78
-                        gi_ctrl_val_chg = True
-                    if(tok0 == 'right'):
-                        gi_sw_right = not gi_sw_right
-                        gi_ctrl_val_chg = True
+                        self.out_q.put({'sw_78':gi_sw_78})
                     if(tok0 == 'left'):
                         gi_sw_left = not gi_sw_left
-                        gi_ctrl_val_chg = True
+                        self.out_q.put({'sw_left':gi_sw_left})
+                    if(tok0 == 'right'):
+                        gi_sw_right = not gi_sw_right
+                        self.out_q.put({'sw_right':gi_sw_right})
+                    if(tok0 == 'p'):
+                        gi_playing = not gi_playing
+                        self.out_q.put({'playing':gi_playing})
 
                     elif(tok0 == 'rt'):
                          syncmode = True
@@ -127,7 +114,7 @@ class RtGuiThread(threading.Thread):
                                      syncmode = False
                                  if(char == ord(' ')):
                                      gi_playing = not gi_playing
-                                     gi_ctrl_val_chg = True
+                                     self.out_q.put({'playing':gi_playing})
                              else:  
                                  screen.addstr(12, 4, "Playing: " + str(gi_playing))
                 if(len(toks) == 3): 

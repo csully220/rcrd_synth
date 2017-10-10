@@ -1,2 +1,3 @@
-(MainThread) [u'FLUID Synth (915):Synth input port (915:0) 128:0', u'Midi Through:Midi Through Port-0 14:0']
 (RtGui     ) Running GuiThread
+(MainThread) playing : True
+(MainThread) playing : False
