@@ -3,17 +3,15 @@ import threading
 import re
 import random
 import logging
-import Queue
 
 class PlayerThread(threading.Thread):
     
-    def __init__(self, s_env, _songfile, q_plyr, _io_ctrls):
+    def __init__(self, s_env, _songfile, _q_io, _io_ctrls):
         super(PlayerThread, self).__init__()
-        self.name = 'Player'
         self.stoprequest = False
         self.playing = False
         self.songfile = _songfile
-        self.q_plyr = q_plyr
+        self.q_io = _q_io
         self.io_ctrls = _io_ctrls
         #get the portname (system specific)
         if(s_env == 'record_synth'):
@@ -27,8 +25,8 @@ class PlayerThread(threading.Thread):
         if(s_env == 'colinsullivan.me'):
             portname = 'Midi Through:Midi Through Port-0 14:0'
         self.outport = mido.open_output(portname, autoreset=True)
-        if(self.outport):
-            logging.debug('outport')
+        #if(self.outport):
+            #logging.debug('outport')
 
     def join(self, timeout=None):
         self.stoprequest = True 
@@ -47,16 +45,14 @@ class PlayerThread(threading.Thread):
     def run(self):
 #        was_playing = False
 #        channels_in_use = []
+        try:
             #while(io_ctrls['playing']): # == True or sw_right):
             while(self.stoprequest == False): # == True or sw_right):
-                try:
-                    pair = self.q_plyr.get()
-                    #logging.debug('gui queue not empty')
+                while(not self.q_io.empty()):
+                    pair = self.q_io.get()
                     self.io_ctrls[pair.keys()[0]] = pair.values()[0]
-                    #logging.debug(str(self.io_ctrls[pair.keys()[0]]))
-                    logging.debug('player queue updated')
-                except Queue.Empty:
-                    continue
+                    logging.debug(pair.keys()[0] + ' : ' + str(pair.values()[0]))
+                    self.playing = self.io_ctrls['playing']
 
                 while(self.playing):
                     logging.debug('MIDMIDMIDI')

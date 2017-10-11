@@ -1,3 +1,6 @@
-(RtGui     ) Running GuiThread
+(MainThread) outport
 (MainThread) playing : True
-(MainThread) playing : False
+(Player    ) player queue updated
+(MainThread) sw_12 : True
+(Player    ) player queue updated
+(RtGui     ) quitting...

@@ -14,63 +14,40 @@ from rt_gui import RtGuiThread
 
 LOG_FILENAME = 'log'
 logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG, filemode='w', format='(%(threadName)-10s) %(message)s')
-#obj_log = logging.getLogger('rcrd_synth')
+
 default_songfile = 'songs/warriorcatssong.mid'
 
-io_ctrls = {'knob1':0, 'knob2':0,'knob3':0,'knob4':0,'knob5':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'playing':False, 'ctrl_val_chg':False}
-gi_ctrls = pl_ctrls = io_ctrls
+io_ctrls = {'knob0':0, 'knob1':0,'knob2':0,'knob3':0,'knob4':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'synthmode':'DEFAULT', 'playing':False, 'ctrl_val_chg':False}
 
 ################################################### INITIALIZE ############################
-gi_knob0=0
-gi_knob1=0
-gi_knob2=0
-gi_knob3=0
-gi_knob4=0
-gi_sw_12=0
-gi_sw_7=0
-gi_sw_auto=0
-gi_sw_start=0
-gi_sw_33=0
-gi_sw_78=0
-gi_sw_left=0
-gi_sw_right=0
-#gi_sw_rotenc=0
-#gi_sw_prog=0
-gi_synthmode='DEFAULT'
-gi_playing=False     
-gi_ctrl_val_chg = False
 
-io_knob0=0
-io_knob1=0
-io_knob2=0
-io_knob3=0
-io_knob4=0
-io_sw_12=0
-io_sw_7=0
-io_sw_auto=0
-io_sw_start=0
-io_sw_33=0
-io_sw_78=0
-io_sw_left=0
-io_sw_right=0
-#io_sw_rotenc=0
-#io_sw_prog=0
-io_synthmode='DEFAULT'
-io_playing=False     
-io_ctrl_val_chg = False
-
+pl_knob0=0
+pl_knob1=0
+pl_knob2=0
+pl_knob3=0
+pl_knob4=0
+pl_sw_12=0
+pl_sw_7=0
+pl_sw_auto=0
+pl_sw_start=0
+pl_sw_33=0
+pl_sw_78=0
+pl_sw_left=0
+pl_sw_right=0
+pl_synthmode='DEFAULT'
+pl_playing=False
+pl_ctrl_val_chg=False
 
 env = socket.gethostname()
 
-#ev_gi_ctrl_upd = threading.Event()
 q_plyr = Queue.Queue()
-thr_player = PlayerThread(env, default_songfile, q_plyr)
-thr_player.setDaemon(True)
+thr_player = PlayerThread(env, default_songfile, q_plyr, io_ctrls)
+#thr_player.setDaemon(True)
 thr_player.start()
 
 q_gui = Queue.Queue()
 thr_rtgui = RtGuiThread(q_gui)
-thr_rtgui.setDaemon(True)
+#thr_rtgui.setDaemon(True)
 thr_rtgui.start()
 
 if(env == 'record_synth'):
@@ -78,22 +55,40 @@ if(env == 'record_synth'):
     thr_iointf.setDaemon(True)
     thr_iointf.start()
 
-x = None
 wt = WolfTones()
-synthmode = 'DEFAULT'
-playing = False
+pl_synthmode = 'DEFAULT'
 ################################################# END INITIALIZE ############################
 
-
-
-
 #------------------------------------------------MAIN LOOP-----------------------------------
+def main():
+    while(thr_rtgui.isAlive() and thr_player.isAlive()):
+        try:
+            pair = q_gui.get(True, 0.05)
+            #logging.debug('gui queue not empty')
+            io_ctrls[pair.keys()[0]] = pair.values()[0]
+            logging.debug(pair.keys()[0] + ' : ' + str(pair.values()[0]))
+            q_plyr.put(pair)
 
-while(thr_rtgui.isAlive()): #and thr_iointf.isAlive()):
-    while(not q_gui.empty()):
-        pair = q_gui.get()
-        io_ctrls[pair.keys()[0]] = pair.values()[0]
-        logging.debug(pair.keys()[0] + ' : ' + str(pair.values()[0]))
-        #q_plyr.put(pair)
-        #io_ctrls['ctrl_val_chg'] = True
+        except Queue.Empty:
+            continue
 
+#            pl_knob0 = io_ctrls['knob0']
+#            pl_knob1 = io_ctrls['knob1']
+#            pl_knob2 = io_ctrls['knob2']
+#            pl_knob3 = io_ctrls['knob3']
+#            pl_knob4 = io_ctrls['knob4']
+#            pl_sw_12 = io_ctrls['sw_12']
+#            pl_sw_7 = io_ctrls['sw_7']
+#            pl_sw_auto = io_ctrls['sw_auto']
+#            pl_sw_start = io_ctrls['sw_start']
+#            pl_sw_33 = io_ctrls['sw_33']
+#            pl_sw_78 = io_ctrls['sw_78']
+#            pl_sw_left = io_ctrls['sw_left']
+#            pl_sw_right = io_ctrls['sw_right']
+#            pl_synthmode = io_ctrls['synthmode']
+#            pl_playing = io_ctrls['playing']
+ 
+    thr_rtgui.join()
+    thr_player.join()
+
+main()
