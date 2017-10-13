@@ -4,16 +4,15 @@ import re
 import random
 import logging
 import Queue
+from mido import MidiFile
 
 class PlayerThread(threading.Thread):
     
-    def __init__(self, s_env, _songfile, q_plyr, _io_ctrls):
+    def __init__(self, s_env, _songfile, _io_ctrls):
         super(PlayerThread, self).__init__()
         self.name = 'Player'
-        self.stoprequest = False
-        self.playing = False
+        self.stoprequest = threading.Event()
         self.songfile = _songfile
-        self.q_plyr = q_plyr
         self.io_ctrls = _io_ctrls
         #get the portname (system specific)
         if(s_env == 'record_synth'):
@@ -27,11 +26,9 @@ class PlayerThread(threading.Thread):
         if(s_env == 'colinsullivan.me'):
             portname = 'Midi Through:Midi Through Port-0 14:0'
         self.outport = mido.open_output(portname, autoreset=True)
-        if(self.outport):
-            logging.debug('outport')
 
     def join(self, timeout=None):
-        self.stoprequest = True 
+        self.stoprequest.set()
         super(PlayerThread, self).join(timeout)
 
     def play(self):
@@ -44,27 +41,30 @@ class PlayerThread(threading.Thread):
         self.stop()
         self.songfile = filepath
 
-    def run(self):
-#        was_playing = False
-#        channels_in_use = []
-            #while(io_ctrls['playing']): # == True or sw_right):
-            while(self.stoprequest == False): # == True or sw_right):
-                try:
-                    pair = self.q_plyr.get()
-                    #logging.debug('gui queue not empty')
-                    self.io_ctrls[pair.keys()[0]] = pair.values()[0]
-                    #logging.debug(str(self.io_ctrls[pair.keys()[0]]))
-                    logging.debug('player queue updated')
-                except Queue.Empty:
-                    continue
+    def get_ctrls(self):
+        try:
+            #pair = self.q_plyr.get()
+            #logging.debug('gui queue not empty')
+            #self.io_ctrls[pair.keys()[0]] = pair.values()[0]
+            #logging.debug(str(self.io_ctrls[pair.keys()[0]]))
+            #logging.debug('player queue updated')
+            self.playing = self.io_ctrls['playing']
+            logging.debug(str(self.playing))
+        except:# Queue.Empty:
+            return
 
-                while(self.playing):
-                    logging.debug('MIDMIDMIDI')
-#                    was_playing = True
-                    for msg in MidiFile(self.songfile).play():
-    #                    if(msg.type == 'prog'):
-    #                        channels_in_use.append(msg.channel)
-    #--------------------  MODIFY MIDI MESSAGES ON THE FLY  ------------------------
+
+    def run(self):
+        logging.debug('MIDIMIDIMIDI')
+        while(not self.stoprequest.isSet()):
+            while(self.io_ctrls['playing']):
+                logging.debug(str(self.io_ctrls['playing']))
+#                was_playing = True
+                for msg in MidiFile(self.songfile).play():
+                     if(self.io_ctrls['playing'] == True):
+                         #if(msg.type == 'prog'):
+                         #    channels_in_use.append(msg.channel)
+#    -----------------  MODIFY MIDI MESSAGES ON THE FLY  ------------------------
                         #if(val_chg == True):
                         #if(True):
                             #if(msg.type == 'note_on'):
@@ -79,6 +79,8 @@ class PlayerThread(threading.Thread):
                                 #if(sw_7):
                                 #    if(msg.channel == 9):
                                 #        msg.velocity = 127
- ##################### SEND MIDI MESSAGE #######################################
-                        self.outport.send(msg)
-                        logging.debug('playing...')
+ ################# SEND MIDI MESSAGE #######################################
+                         self.outport.send(msg)
+                         logging.debug('playing...')
+                     else:
+                         break

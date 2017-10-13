@@ -8,7 +8,7 @@ class RtGuiThread(threading.Thread):
     def __init__(self, q_gui):
         super(RtGuiThread, self).__init__()
         self.name = 'RtGui'
-        self.stoprequest = False
+        self.stoprequest = threading.Event()
         self.out_q = q_gui
 
     def get_param(prompt_string):
@@ -19,9 +19,9 @@ class RtGuiThread(threading.Thread):
         input = screen.getstr(10, 10, 60)
         return input
 
-#    def join(self, timeout=None):
-#        self.stoprequest = True
-#        super(RtGuiThread, self).join(timeout)
+    def join(self, timeout=None):
+        self.stoprequest.set()
+        super(RtGuiThread, self).join(timeout)
 
     def run(self):
 
@@ -43,7 +43,7 @@ class RtGuiThread(threading.Thread):
 
         try:
             screen = curses.initscr()
-            while(self.stoprequest == False):
+            while(not self.stoprequest.isSet()):
             #while(True):
                 screen.addstr(1, 2, 'GUI Inputs')
                 screen.addstr(3, 2, 'Playing: ' + str(gi_playing))
@@ -73,7 +73,8 @@ class RtGuiThread(threading.Thread):
                 if(len(toks) == 1):
                     tok0 = toks[0]
                     if(tok0 == 'quit' or tok0 == 'q'):
-                        self.stoprequest = True
+                        #self.stoprequest.set()
+                        self.join()
                         logging.debug('quitting...')
                     if(tok0 == '12'):
                         gi_sw_12 = not gi_sw_12
@@ -145,7 +146,3 @@ class RtGuiThread(threading.Thread):
         curses.echo()
         curses.endwin()
 
-
-#        def join(self, timeout=None):
-#            self.stoprequest.set()
-#            super(RtGuiThread, self).join(timeout)
