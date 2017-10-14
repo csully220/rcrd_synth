@@ -5,11 +5,20 @@ import curses
 
 class RtGuiThread(threading.Thread):
 
+    _msg_mode_hlp = 'gui or io'
+    _ctrl_src = 'gui'
+
+
+
     def __init__(self, q_gui):
         super(RtGuiThread, self).__init__()
         self.name = 'RtGui'
         self.stoprequest = threading.Event()
         self.out_q = q_gui
+        self._is_ctrl_src = True
+
+    def is_input_src():
+        return self._is_ctrl_src
 
     def get_param(prompt_string):
         screen.clear()
@@ -45,7 +54,7 @@ class RtGuiThread(threading.Thread):
             screen = curses.initscr()
             while(not self.stoprequest.isSet()):
             #while(True):
-                screen.addstr(1, 2, 'GUI Inputs')
+                screen.addstr(1, 1, '*CONTROLS*')
                 screen.addstr(3, 2, 'Playing: ' + str(gi_playing))
                 screen.addstr(4, 2, '12     ' + str(gi_sw_12))
                 screen.addstr(5, 2, '7      ' + str(gi_sw_7))
@@ -61,10 +70,12 @@ class RtGuiThread(threading.Thread):
                 screen.addstr(7, 18,'KNOB3  ' + str(gi_knob3))
                 screen.addstr(8, 18,'KNOB4  ' + str(gi_knob4))
                 screen.addstr(9, 18,'MODE  ' + str(gi_synthmode))
+                screen.addstr(10, 18,'Input Src ' + str(self._ctrl_src))
     
                 screen.addstr(14, 4, 'RcrdSynth#  ')
     
                 curses.echo()
+
                 s_raw = screen.getstr(14, 15)
                 screen.clear()
     
@@ -100,10 +111,13 @@ class RtGuiThread(threading.Thread):
                     if(tok0 == 'right'):
                         gi_sw_right = not gi_sw_right
                         self.out_q.put({'sw_right':gi_sw_right})
+
                     if(tok0 == 'p'):
-                        #logging.debug('playing set...')
                         gi_playing = not gi_playing
                         self.out_q.put({'playing':gi_playing})
+                    if(tok0 == 'newsong'):
+                        self.out_q.put({'command':tok0})
+
     
                     elif(tok0 == 'rt'):
                          syncmode = True
@@ -140,6 +154,15 @@ class RtGuiThread(threading.Thread):
                     if(tok0 == 'knob4'):
                         gi_knob4 = int(tok1)
                         self.out_q.put({'knob4':gi_knob4})
+                    if(tok0 == 'mode'):
+                        if(tok1 == 'gui'):
+                            self._is_ctrl_src = True
+                            self._ctrl_src = tok1
+                        if(tok1 == 'io'):
+                            self._is_ctrl_src = False
+                            self._ctrl_src = tok1
+                        if(tok1 == '?'):
+                            screen.addstr(15, 8, self._msg_mode_hlp)
         except:
             curses.echo()
             curses.endwin()

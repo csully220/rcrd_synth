@@ -7,13 +7,31 @@ import Queue
 from mido import MidiFile
 
 class PlayerThread(threading.Thread):
-    
+   
     def __init__(self, s_env, _songfile, _io_ctrls):
         super(PlayerThread, self).__init__()
         self.name = 'Player'
         self.stoprequest = threading.Event()
         self.songfile = _songfile
         self.io_ctrls = _io_ctrls
+       
+        self.knob0 = self.io_ctrls['knob0']
+        self.knob1 = self.io_ctrls['knob1']
+        self.knob2 = self.io_ctrls['knob2']
+        self.knob3 = self.io_ctrls['knob3']
+        self.knob4 = self.io_ctrls['knob4']
+
+        self.sw_12 = self.io_ctrls['sw_12']
+        self.sw_7 = self.io_ctrls['sw_7']
+        self.sw_auto = self.io_ctrls['sw_auto']
+        self.sw_start = self.io_ctrls['sw_start']
+        self.sw_33 = self.io_ctrls['sw_33']
+        self.sw_78 = self.io_ctrls['sw_78']
+        self.sw_left = self.io_ctrls['sw_left']
+        self.sw_right = self.io_ctrls['sw_right']
+        self.synthmode = self.io_ctrls['synthmode']
+        self.playing = self.io_ctrls['playing']
+ 
         #get the portname (system specific)
         if(s_env == 'record_synth'):
             names = str(mido.get_output_names())
@@ -28,6 +46,7 @@ class PlayerThread(threading.Thread):
         self.outport = mido.open_output(portname, autoreset=True)
 
     def join(self, timeout=None):
+        logging.debug('joining ..')
         self.stoprequest.set()
         super(PlayerThread, self).join(timeout)
 
@@ -55,16 +74,14 @@ class PlayerThread(threading.Thread):
 
 
     def run(self):
-        logging.debug('MIDIMIDIMIDI')
         while(not self.stoprequest.isSet()):
-            while(self.io_ctrls['playing']):
-                logging.debug(str(self.io_ctrls['playing']))
-#                was_playing = True
+            while(self.io_ctrls['playing'] == True):
+#               was_playing = True
                 for msg in MidiFile(self.songfile).play():
-                     if(self.io_ctrls['playing'] == True):
-                         #if(msg.type == 'prog'):
-                         #    channels_in_use.append(msg.channel)
-#    -----------------  MODIFY MIDI MESSAGES ON THE FLY  ------------------------
+                     if(self.io_ctrls['playing'] and not self.stoprequest.isSet()):
+                        #if(msg.type == 'prog'):
+                        #    channels_in_use.append(msg.channel)
+#   --------    ------  MODIFY MIDI MESSAGES ON THE FLY  ------------------------
                         #if(val_chg == True):
                         #if(True):
                             #if(msg.type == 'note_on'):
@@ -79,8 +96,8 @@ class PlayerThread(threading.Thread):
                                 #if(sw_7):
                                 #    if(msg.channel == 9):
                                 #        msg.velocity = 127
- ################# SEND MIDI MESSAGE #######################################
+ ###########    ## SEND MIDI MESSAGE #######################################
                          self.outport.send(msg)
-                         logging.debug('playing...')
+                         logging.debug('notes')
                      else:
                          break

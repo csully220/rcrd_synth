@@ -64,25 +64,6 @@ class IoIntfThread(threading.Thread):
 
 
     def run(self):
-        global io_knob0
-        global io_knob1
-        global io_knob2
-        global io_knob3
-        global io_knob4
-        global io_sw_12
-        global io_sw_7
-        global io_sw_auto
-        global io_sw_start
-        global io_sw_33
-        global io_sw_78
-        global io_sw_left
-        global io_sw_right
-        #global io_sw_rotenc
-        #global io_sw_prog
-        global io_ctrl_val_chg
-        global io_playing
-        global io_synthmode
-    
         #while(not self.stoprequest.isSet()):
         while(1):
             if(self.unpack_serial()):
