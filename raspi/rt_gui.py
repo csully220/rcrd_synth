@@ -54,7 +54,7 @@ class RtGuiThread(threading.Thread):
             screen = curses.initscr()
             while(not self.stoprequest.isSet()):
             #while(True):
-                screen.addstr(1, 1, '*CONTROLS*')
+                screen.addstr(1, 1, '*RECORD PLAYER SYNTH CONTROLS*')
                 screen.addstr(3, 2, 'Playing: ' + str(gi_playing))
                 screen.addstr(4, 2, '12     ' + str(gi_sw_12))
                 screen.addstr(5, 2, '7      ' + str(gi_sw_7))
@@ -111,14 +111,11 @@ class RtGuiThread(threading.Thread):
                     if(tok0 == 'right'):
                         gi_sw_right = not gi_sw_right
                         self.out_q.put({'sw_right':gi_sw_right})
-
                     if(tok0 == 'p'):
                         gi_playing = not gi_playing
                         self.out_q.put({'playing':gi_playing})
                     if(tok0 == 'newsong'):
-                        self.out_q.put({'command':tok0})
-
-    
+                        self.out_q.put({'command':tok0.upper()})
                     elif(tok0 == 'rt'):
                          syncmode = True
                          curses.noecho() 

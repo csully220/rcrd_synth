@@ -1,33 +1,26 @@
-valid_genres = {'Classical':15,
-                'Piano':10,
-                'Guitar':11,
-                'Ambient':25,
-                'Rock/Pop':30,
-                'Dance':40,
-                'Hip Hop':45,
-                'R&B':60,
-                'Blues':55,
-                'Jazz':50,
-                'Country':65,
-                'Latin':70,
-                'World':80,
-                'Experimental':90,
-                'Signaling':95}
+valid_genres = {'Classical':'15',
+                'Piano':'10',
+                'Guitar':'11',
+                'Ambient':'25',
+                'Rock/Pop':'30',
+                'Dance':'40',
+                'Hip Hop':'45',
+                'R&B':'60',
+                'Blues':'55',
+                'Jazz':'50',
+                'Country':'65',
+                'Latin':'70',
+                'World':'80',
+                'Experimental':'90',
+                'Signaling':'95'}
 
 valid_rule_types = {7,15,31,55,61,62,79,91,103,110,157,167,773,1047,1585}
 rule_range = [1, 4294967295]
-rule_min = 1
-rule_max = 4294967295
-seed_min = 1
-seed_max = 67108863
-duration_min = 4 
-duration_max = 240
-bpm_min = 60
-bpm_max = 288
-npb_min = 2
-npb_max = 16
-height_min = 5
-height_max = 25
+seed_range = [1, 67108863]
+duration_range = [4, 240]
+bpm_range = [60, 288]
+npb_range = [2, 16]
+height_range = [5, 25]
 valid_scales = {}
 pitch_min = 24
 pitch_max = 72

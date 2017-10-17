@@ -1,6 +1,7 @@
 import serial
 import time
 import threading
+import logging
 
 class IoIntfThread(threading.Thread):
 
@@ -21,6 +22,11 @@ class IoIntfThread(threading.Thread):
 
     def get_readline(self):
         return self.ser.readline()
+
+    def join(self, timeout=None):
+        logging.debug('joining ..')
+        self.stoprequest.set()
+        super(IoIntfThread, self).join(timeout)
 
     def unpack_serial(self):
         try:

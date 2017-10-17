@@ -1,15 +1,16 @@
 import collections
 import requests
 import random
+import logging
 import wolftones_validate
 
 class WolfTones:
     
-    dl_url = 'https://www.wolframcloud.com/objects/user-a13d29f3-43bf-4b00-8e9b-e55639ecde19/NKMMusicDownload'
+    dl_url = 'https://www.wolframcloud.com/objects/user-a13d29f3-43bf-4b00-8e9b-e55639ecde19/NKMMusicDownload?id='
     genre_url = 'https://www.wolframcloud.com/objects/user-a13d29f3-43bf-4b00-8e9b-e55639ecde19/NKMNewID?genre=' 
 
     #hip hop, dance, blues, experimental
-    fav_genres = [45,40,55,90]
+    #fav_genres = [45,40,55,90]
     #Pan Flute, brazilian bell, melodic tom, 
     wildcard_inst = [76, 114, 118]
 
@@ -59,19 +60,19 @@ class WolfTones:
                     self.params[key] = value
                     return True
             if key == 'seed':
-                if self.seed_min <= int(value) <= self.seed_max:
+                if self.seed_range[0] <= int(value) <= self.seed_range[1]:
                     self.params[key] = value
                     return True
             if key == 'duration':
-                if self.duration_min <= int(value) <= self.duration_max:
+                if self.duration_range[0] <= int(value) <= self.duration_range[1]:
                     self.params[key] = value
                     return True
             if key == 'bpm':
-                if self.bpm_min <= int(value) <= self.bpm_max:
+                if self.bpm_range[0] <= int(value) <= self.bpm_range[1]:
                     self.params[key] = value
                     return True
             if key == 'npb':
-                if self.npb_min <= int(value) <= self.npb_max:
+                if self.npb_range[0] <= int(value) <= self.npb_range[1]:
                     self.params[key] = value
                     return True
             if key == 'scale':
@@ -105,30 +106,42 @@ class WolfTones:
         enc_id += params[-1]
         return enc_id
 
-    def send_url_request(self):
-        nkm_id = 'NKM-G-' + self.nkm_encoded_id()
-        r = requests.get(self.dl_url + '?id=' + nkm_id + '&form=MIDI')
+    def send_url_request(self, enc_id=None):
+        if(enc_id == None):
+            nkm_id = 'NKM-G-' + self.nkm_encoded_id()
+        else:
+            nkm_id = enc_id 
+            logging.debug('WolfTones nkm id: ' +  str(nkm_id))
+        r = requests.get(self.dl_url + nkm_id + '&form=MIDI')
         return r
  
-    def nkm_encoded_url(self):
-        nkm_id = 'NKM-G-' + self.nkm_encoded_id()
-        return self.dl_url + '?id=' + nkm_id + '&form=MIDI'
-
-    def set_genre(self, genre):
-        r = requests.get(self.genre_url + str(genre)) 
-        tmp = r.content.split('"')[1]
-        params = tmp.split('-')
-        for x in range(2):
-            del params[0]
+    def get_by_genre(self, genre=None):
+        if(genre == None):
+            fav_genres = ['45','40','55','60']
+            rg = random.choice(fav_genres)
+        else:
+            rg = str(genre)
+        logging.debug('random fav genre - ' + rg)
+        url = self.genre_url + rg
+        try:
+            r = requests.get(url)
+            enc_id = r.json()
+            r = self.send_url_request(enc_id)
+            self.set_params_by_id(enc_id)
+        except:
+            logging.debug('WolfTones failed to retrieve by genre')
+        return r
+        
+    def set_params_by_id(self, enc_id):
+        toks = enc_id.split('-')
+        del toks[:2]
         i = 0
-        for p in params:
-            self.params[self.params.keys()[i]] = str(p)
-            #print(p)
-            #print(self.params[i])
+        for t in toks:
+            self.params[self.params.keys()[i]] = t 
             i += 1
 
-    def get_song(self, genre=None):
-        self.set_genre(random.randrange(5))
+
+        '''
         try:
             response = wt.send_url_request()
             #logging.debug(wt.nkm_encoded_url())
@@ -144,5 +157,5 @@ class WolfTones:
                 return songfile
         except:
             song_file = 'songs/save/warriorcatssong.mid'
-
+        '''
 #obj_params = collections.OrderedDict( [ ('genre','45'), ('rule_type','15'), ('rule','10'), ('cyc_bdry','1'), ('seed','34444'), ('duration','21'), ('bpm','130'), ('npb','4'), ('scale','2050'), ('pitch','44'), ('mystery','0'), ('inst_1','31'), ('role_1','10'), ('inst_2','95'), ('role_2','135'), ('inst_3','0'), ('role_3','0'), ('inst_4','0'), ('role_4','0'), ('inst_5','0'), ('role_5','0'), ('perc','711') ] )
