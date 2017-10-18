@@ -33,31 +33,27 @@ class PlayerThread(threading.Thread):
         self.synthmode = self.io_ctrls['synthmode']
         self.playing = self.io_ctrls['playing']
         
- 
         #get the portname (system specific)
         if(s_env == 'record_synth'):
             names = str(mido.get_output_names())
-            #logging.debug(names)
             ports = names.split(',')
-            #logging.debug(ports)
             sobj = re.search(r'Synth input port \(\d*:0\)', ports[0], flags=0)
-            #logging.debug(sobj)
             portname = sobj.group()
         if(s_env == 'colinsullivan.me'):
             portname = 'Midi Through:Midi Through Port-0 14:0'
         self.outport = mido.open_output(portname, autoreset=True)
 
     def join(self, timeout=None):
-        logging.debug('joining ..')
+        logging.debug('Player joining..')
         self.outport.reset()
         self.stoprequest.set()
         super(PlayerThread, self).join(timeout)
 
     def play(self):
-        self.io_ctrls['playing'] == True
+        self.io_ctrls['playing'] = True
 
     def stop(self):
-        self.io_ctrls['playing'] == False
+        self.io_ctrls['playing'] = False
 
     def change_song(self, filepath):
         self.stop()
@@ -65,14 +61,16 @@ class PlayerThread(threading.Thread):
 
     def run(self):
         while(not self.stoprequest.isSet()):
-            while(self.io_ctrls['playing'] == True):
+            #while(self.io_ctrls['playing'] == True):
+            while(self.io_ctrls['playing'] == True or self.io_ctrls['sw_right'] == True):
                 was_playing = True
                 for msg in MidiFile(self.songfile).play():
-                    if(self.io_ctrls['playing'] and not self.stoprequest.isSet()):
+                    #if(self.io_ctrls['playing'] and not self.stoprequest.isSet()):
+                    if((self.io_ctrls['playing'] == True or self.io_ctrls['sw_right']) and not self.stoprequest.isSet()):
                         if(msg.type == 'program_change' and not msg.channel in self.channels_in_use):
                             self.channels_in_use.append(msg.channel)
                             logging.debug('saved channel:  ' + str(self.channels_in_use[-1])) 
-#   --------    ------  MODIFY MIDI MESSAGES ON THE FLY  ------------------------
+#-------------- MODIFY MIDI MESSAGES ON THE FLY  ------------------------
                         #if(val_chg == True):
                         #if(True):
                             #if(msg.type == 'note_on'):
@@ -87,9 +85,8 @@ class PlayerThread(threading.Thread):
                                 #if(sw_7):
                                 #    if(msg.channel == 9):
                                 #        msg.velocity = 127
- ###########    ## SEND MIDI MESSAGE #######################################
+ ############# SEND MIDI MESSAGE #######################################
                         self.outport.send(msg)
-                         #logging.debug('notes')
                     else:
                         if(was_playing == True):
                             self.outport.reset()

@@ -29,6 +29,7 @@ class RtGuiThread(threading.Thread):
         return input
 
     def join(self, timeout=None):
+        logging.debug('GUI joining...')
         self.stoprequest.set()
         super(RtGuiThread, self).join(timeout)
 

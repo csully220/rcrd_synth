@@ -10,10 +10,13 @@
 #define DLSONG_NUM_ITEMS 2
 
 //Modes
-#define BM_NONE   0x00
-#define BM_ISO_CH 0x02
-#define BM_DLSONG 0x03
-#define BM_PWROFF 0xFE
+#define BM_DEFAULT 0x00
+#define BM_ISO_CH  0x01
+//commands
+#define BM_NONE    0xC0
+#define BM_PWROFF  0xC1
+#define BM_DLSONG  0xC2
+
 
 
 class Menus

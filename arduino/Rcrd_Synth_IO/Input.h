@@ -40,7 +40,7 @@ void initInput(){
 
 bool updateInput(){
   
-	bool changed = false;
+  bool changed = false;
   byte temp;
 
   for(int i=0; i<=4; i++){

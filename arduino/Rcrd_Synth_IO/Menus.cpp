@@ -105,7 +105,6 @@
     
     void Menus::select(){
       switch(current_menu) {
-      //if(current_menu == TOP){
         case TOP:
           switch(index){
             case 0: //switches
@@ -133,7 +132,7 @@
             has_msg = true;
           }
           else if(index == 1)
-            changeMenu(TOP)
+            changeMenu(TOP);
         case DLSONG:
           if(index == 0){
             msg_byte = byte(BM_DLSONG);
@@ -142,7 +141,7 @@
           else if(index == 1){
             changeMenu(TOP);
           }
-        
+       } 
     }
     
     void Menus::changeMenu(e_menu_titles new_menu){
@@ -152,10 +151,8 @@
     }
 
     byte Menus::getMsgByte(){
-      byte tmp = msg_byte;
-      msg_byte = byte(BM_NONE);
       has_msg = false;
-      return tmp;
+      return msg_byte;
     }
 
     void Menus::dispTopMenu(){

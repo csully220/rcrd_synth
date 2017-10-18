@@ -37,10 +37,12 @@ thr_gui = RtGuiThread(q_gui)
 thr_gui.setDaemon(True)
 thr_gui.start()
 
+q_io = Queue.Queue()
 if(env == 'record_synth'):
-    thr_iointf = IoIntfThread()
+    logging.debug('starting io thread')
+    thr_iointf = IoIntfThread(q_io, io_ctrls)
     thr_iointf.setDaemon(True)
-#    thr_iointf.start()
+    thr_iointf.start()
 
 wt = WolfTones()
 ################################################# END INITIALIZE ############################
@@ -48,34 +50,37 @@ wt = WolfTones()
 #------------------------------------------------MAIN LOOP-----------------------------------
 def main():
     while(thr_gui.isAlive() and thr_player.isAlive()):
+        vals_changed = False
         try:
             pair = q_gui.get(True, 0.1) #blocks until gets
             #logging.debug('gui queue not empty')
             io_ctrls[pair.keys()[0]] = pair.values()[0]
             #logging.debug(pair.keys()[0] + ' : ' + str(pair.values()[0]))
-            playing = io_ctrls['playing']
-            if(io_ctrls['command'] == 'NEWSONG'):
-                io_ctrls['command'] = 'NONE'
-                try:
-                    response = wt.get_by_genre()
-                    #logging.debug('MIDI file requested from ' + wt.nkm_encoded_url())
-                    if(response.content):
-                        logging.debug('Got a new song from Wolftones')
-                        tmp = song_temp_path + 'dl_song-{:%m-%d-%H:%M}'.format(datetime.datetime.now()) + '.mid'
-                        with open(tmp, 'w+') as f:
-                            f.write(response.content)
-                        thr_player.change_song(tmp)
-                except:
-                    song_file = default_songfile
-                    logging.debug('Wolftones retrieval failed')
-
         except Queue.Empty:
             pass
+
+        if(io_ctrls['command'] == 'NEWSONG'):
+            io_ctrls['command'] = 'NONE'
+            try:
+                response = wt.get_by_genre()
+                #logging.debug('MIDI file requested from ' + wt.nkm_encoded_url())
+                if(response.content):
+                    logging.debug('Got a new song from Wolftones')
+                    tmp = song_temp_path + 'dl_song-{:%m-%d-%H:%M}'.format(datetime.datetime.now()) + '.mid'
+                    with open(tmp, 'w+') as f:
+                        f.write(response.content)
+                    thr_player.change_song(tmp)
+            except:
+                song_file = default_songfile
+                logging.debug('Wolftones retrieval failed')
+
     if(thr_player.isAlive()):
         thr_player.join()
     if(thr_gui.isAlive()):
         thr_gui.join()
-    if(env == 'record_synth' and thr_iointf.isAlive()):
+    #if(env == 'record_synth' and thr_iointf.isAlive()):
+    if(thr_iointf.isAlive()):
         thr_iointf.join()
+    quit()
 
 main()
