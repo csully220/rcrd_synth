@@ -5,10 +5,10 @@ import logging
 
 class IoIntfThread(threading.Thread):
 
-#define BM_NONE   0x00
-#define BM_ISO_CH 0x02
-#define BM_DLSONG 0x03
-#define BM_PWROFF 0xFE
+#define NONE   0x00
+#define ISO_CHNL 0x02
+#define NEWSONG 0x03
+#define POWEROFF 0xFE
 
     sw_names = ['sw_right', 'sw_left', 'sw_78', 'sw_33', 'sw_start', 'sw_auto', 'sw_7', 'sw_12']
     knob_names = ['knob0', 'knob1', 'knob2', 'knob3', 'knob4']

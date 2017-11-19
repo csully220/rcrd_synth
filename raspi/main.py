@@ -3,6 +3,7 @@ import os
 import datetime
 import time
 import threading
+from threading import Lock
 import logging
 import socket
 import Queue
@@ -10,7 +11,10 @@ from wolftones import WolfTones
 from io_intf import IoIntfThread 
 import player
 from player import PlayerThread
-from rt_gui import RtGuiThread
+from gui import GuiThread
+import copy
+from os import listdir
+from os.path import isfile, join
 
 LOG_FILENAME = 'log'
 logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG, filemode='w', format='(%(threadName)-10s) %(message)s')
@@ -20,62 +24,91 @@ song_temp_path = '/home/pi/rcrd_synth/raspi/songs/temp/'
 
 default_songfile = song_save_path + 'warriorcatssong.mid'
 
+valid_cmd_names = ['NONE', 'ISO_CHNL', 'NEWSONG', 'POWEROFF']
+
 global io_ctrls
-io_ctrls = {'knob0':0, 'knob1':0,'knob2':0,'knob3':0,'knob4':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'synthmode':'DEFAULT', 'command':'NONE', 'playing':False, 'ctrl_val_chg':False}
+io_ctrls = {'knob0':0, 'knob1':0,'knob2':0,'knob3':0,'knob4':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'songfile':'warriorcatssong.mid', 'mode':'DEFAULT', 'cmd':'NONE', 'play':False, 'val_chg':False}
+
+global gui_ctrls
+gui_ctrls = {'knob0':0, 'knob1':0,'knob2':0,'knob3':0,'knob4':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'songfile':'warriorcatssong.mid', 'mode':'DEFAULT', 'cmd':'NONE', 'play':False, 'val_chg':False}
+
+global plyr_ctrls
+plyr_ctrls = {'knob0':0, 'knob1':0,'knob2':0,'knob3':0,'knob4':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'songfile':'warriorcatssong.mid', 'mode':'DEFAULT', 'cmd':'NONE', 'play':False, 'val_chg':False}
 
 ################################################### INITIALIZE ############################
 
 env = socket.gethostname()
 
-q_plyr = Queue.Queue()
-thr_player = PlayerThread(env, default_songfile, io_ctrls)
-thr_player.setDaemon(True)
-thr_player.start()
+thr_plyr = PlayerThread(env, default_songfile, plyr_ctrls)
+thr_plyr.setDaemon(True)
+thr_plyr.start()
 
-q_gui = Queue.Queue()
-thr_gui = RtGuiThread(q_gui)
+thr_gui = GuiThread(gui_ctrls)
 thr_gui.setDaemon(True)
 thr_gui.start()
 
 q_io = Queue.Queue()
 if(env == 'record_synth'):
-    logging.debug('starting io thread')
     thr_iointf = IoIntfThread(q_io, io_ctrls)
-    thr_iointf.setDaemon(True)
-    thr_iointf.start()
+    #thr_iointf.setDaemon(True)
+#    thr_iointf.start()
 
 wt = WolfTones()
 ################################################# END INITIALIZE ############################
 
 #------------------------------------------------MAIN LOOP-----------------------------------
+
 def main():
-    while(thr_gui.isAlive() and thr_player.isAlive()):
-        vals_changed = False
-        try:
-            pair = q_gui.get(True, 0.1) #blocks until gets
-            #logging.debug('gui queue not empty')
-            io_ctrls[pair.keys()[0]] = pair.values()[0]
-            #logging.debug(pair.keys()[0] + ' : ' + str(pair.values()[0]))
-        except Queue.Empty:
-            pass
+    _ctrl_src = 'GUI'
+    lock = Lock()
+    thr_plyr.change_song(default_songfile)
+    while(thr_gui.isAlive() and thr_plyr.isAlive()):
+        if(_ctrl_src == 'GUI'):
+            if(gui_ctrls['val_chg'] == True):
+                thr_plyr.plyr_ctrls = thr_gui.gui_ctrls 
+            #start playing 
+            #if(gui_ctrls['play'] == True):
+            #    logging.debug('Playing...')
+            #download a fresh MIDI file
+            if(gui_ctrls['cmd'] == 'NEWSONG'):
+                gui_ctrls['cmd'] = 'NONE'
+                try:
+                    response = wt.get_by_genre()
+                    #logging.debug('MIDI file requested from ' + wt.nkm_encoded_url())
+                    if(response.content):
+                        logging.debug('Got a new song from Wolftones')
+                        tmp = song_temp_path + 'dl_song-{:%m-%d-%H:%M}'.format(datetime.datetime.now()) + '.mid'
+                        with open(tmp, 'w+') as f:
+                            f.write(response.content)
+                        thr_plyr.change_song(tmp)
+                except:
+                    thr_plyr.change_song(default_songfile)
+                    logging.debug('Wolftones retrieval failed')
 
-        if(io_ctrls['command'] == 'NEWSONG'):
-            io_ctrls['command'] = 'NONE'
-            try:
-                response = wt.get_by_genre()
-                #logging.debug('MIDI file requested from ' + wt.nkm_encoded_url())
-                if(response.content):
-                    logging.debug('Got a new song from Wolftones')
-                    tmp = song_temp_path + 'dl_song-{:%m-%d-%H:%M}'.format(datetime.datetime.now()) + '.mid'
-                    with open(tmp, 'w+') as f:
-                        f.write(response.content)
-                    thr_player.change_song(tmp)
-            except:
-                song_file = default_songfile
-                logging.debug('Wolftones retrieval failed')
+            if(gui_ctrls['cmd'] == 'LOADSONG'):
+                gui_ctrls['cmd'] = 'NONE'
+                logging.debug('loading a saved song -  ' + gui_ctrls['songfile'])
+                songfiles = [f for f in listdir(song_save_path) if isfile(join(song_save_path, f))]
+                for s in songfiles:
+                    logging.debug(str(s))
+                    logging.debug(str(gui_ctrls['songfile'] in songfiles))
+                if(gui_ctrls['songfile'] in songfiles):
+                    tmp = song_save_path + gui_ctrls['songfile']
+                    logging.debug(tmp)
+                    thr_plyr.change_song(tmp)
+                else:
+                    logging.debug('songfile not in saved')
 
-    if(thr_player.isAlive()):
-        thr_player.join()
+            #lock.acquire()
+            #try:
+                #thr_plyr.ctrls.values() = thr_gui.ctrls.values() 
+
+            gui_ctrls['val_chg'] == False
+            #finally:
+                #lock.release()
+        time.sleep(0.05)
+    if(thr_plyr.isAlive()):
+        thr_plyr.join()
     if(thr_gui.isAlive()):
         thr_gui.join()
     #if(env == 'record_synth' and thr_iointf.isAlive()):

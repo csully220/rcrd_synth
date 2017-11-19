@@ -13,7 +13,7 @@ class WolfTones:
     #fav_genres = [45,40,55,90]
     #Pan Flute, brazilian bell, melodic tom, 
     wildcard_inst = [76, 114, 118]
-
+    fav_genres = ['25', '45','40','55','60'] # ambient,hip hop, dance, blues, R&B
 
     def __init__(self):
         self.params = collections.OrderedDict( [
@@ -117,8 +117,7 @@ class WolfTones:
  
     def get_by_genre(self, genre=None):
         if(genre == None):
-            fav_genres = ['45','40','55','60']
-            rg = random.choice(fav_genres)
+            rg = random.choice(self.fav_genres)
         else:
             rg = str(genre)
         logging.debug('random fav genre - ' + rg)

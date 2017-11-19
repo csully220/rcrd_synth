@@ -7,32 +7,16 @@ import Queue
 from mido import MidiFile
 
 class PlayerThread(threading.Thread):
-   
-    def __init__(self, s_env, _songfile, _io_ctrls):
+  
+    def __init__(self, s_env, _songfile, _plyr_ctrls):
         super(PlayerThread, self).__init__()
         self.name = 'Player'
         self.stoprequest = threading.Event()
         self.songfile = _songfile
-        self.io_ctrls = _io_ctrls
+        self.plyr_ctrls = _plyr_ctrls
         self.channels_in_use = []
-       
-        self.knob0 = self.io_ctrls['knob0']
-        self.knob1 = self.io_ctrls['knob1']
-        self.knob2 = self.io_ctrls['knob2']
-        self.knob3 = self.io_ctrls['knob3']
-        self.knob4 = self.io_ctrls['knob4']
+        self.midifile = MidiFile(_songfile)
 
-        self.sw_12 = self.io_ctrls['sw_12']
-        self.sw_7 = self.io_ctrls['sw_7']
-        self.sw_auto = self.io_ctrls['sw_auto']
-        self.sw_start = self.io_ctrls['sw_start']
-        self.sw_33 = self.io_ctrls['sw_33']
-        self.sw_78 = self.io_ctrls['sw_78']
-        self.sw_left = self.io_ctrls['sw_left']
-        self.sw_right = self.io_ctrls['sw_right']
-        self.synthmode = self.io_ctrls['synthmode']
-        self.playing = self.io_ctrls['playing']
-        
         #get the portname (system specific)
         if(s_env == 'record_synth'):
             names = str(mido.get_output_names())
@@ -50,33 +34,48 @@ class PlayerThread(threading.Thread):
         super(PlayerThread, self).join(timeout)
 
     def play(self):
-        self.io_ctrls['playing'] = True
+        self.plyr_ctrls['play'] = True
 
     def stop(self):
-        self.io_ctrls['playing'] = False
+        self.plyr_ctrls['play'] = False
 
     def change_song(self, filepath):
         self.stop()
-        self.songfile = filepath
+        try: 
+            self.midifile = MidiFile(filepath)
+            self.plyr_ctrls['songfile'] = filepath
+            #logging.debug(str(self.midifile.tracks))
+            for track in self.midifile.tracks:
+                for msg in track:
+                    if(msg.type == 'program_change' and not msg.channel in self.channels_in_use):
+                        self.channels_in_use.append(msg.channel)
+                        logging.debug('saved channel:  ' + str(self.channels_in_use[-1]))
+                        if(msg.channel == 9):
+                            track.name = 'perc'
+                            logging.debug('track name: ' + track.name)
+            #for msg in track:
+            #    logging.debug(msg)
+        except:
+            logging.debug('song failed to load')
+            self.songfile = filepath
 
     def run(self):
         while(not self.stoprequest.isSet()):
             #while(self.io_ctrls['playing'] == True):
-            while(self.io_ctrls['playing'] == True or self.io_ctrls['sw_right'] == True):
+            while(self.plyr_ctrls['play'] == True and not self.stoprequest.isSet()):
                 was_playing = True
-                for msg in MidiFile(self.songfile).play():
+                for msg in self.midifile.play():
                     #if(self.io_ctrls['playing'] and not self.stoprequest.isSet()):
-                    if((self.io_ctrls['playing'] == True or self.io_ctrls['sw_right']) and not self.stoprequest.isSet()):
-                        if(msg.type == 'program_change' and not msg.channel in self.channels_in_use):
-                            self.channels_in_use.append(msg.channel)
-                            logging.debug('saved channel:  ' + str(self.channels_in_use[-1])) 
+                    if(self.plyr_ctrls['play'] == True and not self.stoprequest.isSet()):
 #-------------- MODIFY MIDI MESSAGES ON THE FLY  ------------------------
-                        #if(val_chg == True):
+                        # Here do things that only happen once when a value changes
+                        #if(self.plyr_ctrls['val_chg'] == True):
+                        #    pass
                         #if(True):
                             #if(msg.type == 'note_on'):
                                 #if(sw_33 and msg.channel == knob1):
                                 #    msg.note += 7
-                                #if(synthmode == 'ISO_CH'):
+                                #if(self.plyr_ctrls['mode'] == 'ISO_CH'):
                                 #    if(msg.channel != knob0):
                                 #        msg.velocity = 0
                                 #if(sw_12):
