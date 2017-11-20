@@ -5,9 +5,13 @@ import random
 import logging
 import Queue
 from mido import MidiFile
+import wolftones_validate
+
+
+
 
 class PlayerThread(threading.Thread):
-  
+
     def __init__(self, s_env, _songfile, _plyr_ctrls):
         super(PlayerThread, self).__init__()
         self.name = 'Player'
@@ -39,24 +43,12 @@ class PlayerThread(threading.Thread):
     def stop(self):
         self.plyr_ctrls['play'] = False
 
-    def change_song(self, filepath):
-        self.stop()
-        try: 
+    def load_song(self, filepath):
+            self.stop()
+        #try: 
             self.midifile = MidiFile(filepath)
             self.plyr_ctrls['songfile'] = filepath
-            #logging.debug(str(self.midifile.tracks))
-            for track in self.midifile.tracks:
-                for msg in track:
-                    if(msg.type == 'program_change' and not msg.channel in self.channels_in_use):
-                        self.channels_in_use.append(msg.channel)
-                        logging.debug('saved channel:  ' + str(self.channels_in_use[-1]))
-                        if(msg.channel == 9):
-                            track.name = 'perc'
-                            logging.debug('track name: ' + track.name)
-            #for msg in track:
-            #    logging.debug(msg)
-        except:
-            logging.debug('song failed to load')
+            logging.debug(str(self.midifile.tracks))
             self.songfile = filepath
 
     def run(self):

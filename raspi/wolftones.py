@@ -2,12 +2,17 @@ import collections
 import requests
 import random
 import logging
-import wolftones_validate
+from wolftones_validate import WolfTonesValidate
+import mido
+from mido import MidiFile
+import datetime
 
 class WolfTones:
     
     dl_url = 'https://www.wolframcloud.com/objects/user-a13d29f3-43bf-4b00-8e9b-e55639ecde19/NKMMusicDownload?id='
     genre_url = 'https://www.wolframcloud.com/objects/user-a13d29f3-43bf-4b00-8e9b-e55639ecde19/NKMNewID?genre=' 
+    song_save_path = '/home/pi/rcrd_synth/raspi/songs/save/'
+    song_temp_path = '/home/pi/rcrd_synth/raspi/songs/temp/'
 
     #hip hop, dance, blues, experimental
     #fav_genres = [45,40,55,90]
@@ -16,6 +21,7 @@ class WolfTones:
     fav_genres = ['25', '45','40','55','60'] # ambient,hip hop, dance, blues, R&B
 
     def __init__(self):
+        self.vld = WolfTonesValidate()
         self.params = collections.OrderedDict( [
             ('genre','45'),   
             ('rule_type','15'),
@@ -111,7 +117,7 @@ class WolfTones:
             nkm_id = 'NKM-G-' + self.nkm_encoded_id()
         else:
             nkm_id = enc_id 
-            logging.debug('WolfTones nkm id: ' +  str(nkm_id))
+            #logging.debug('WolfTones nkm id: ' +  str(nkm_id))
         r = requests.get(self.dl_url + nkm_id + '&form=MIDI')
         return r
  
@@ -120,7 +126,7 @@ class WolfTones:
             rg = random.choice(self.fav_genres)
         else:
             rg = str(genre)
-        logging.debug('random fav genre - ' + rg)
+        #logging.debug('random fav genre - ' + rg)
         url = self.genre_url + rg
         try:
             r = requests.get(url)
@@ -129,32 +135,72 @@ class WolfTones:
             self.set_params_by_id(enc_id)
         except:
             logging.debug('WolfTones failed to retrieve by genre')
-        return r
-        
+            return None
+        fn = self.write_file(r.content)
+        md = MidiFile(fn)
+        for trk in md.tracks:
+            for msg in trk:
+                if msg.type == 'program_change':
+                    role = self.get_role(msg.program)
+                    if(role):
+                        trk.name = role
+                    else:
+                        trk.name = 'None'
+                    break
+        md.save(fn)
+        return fn 
+       
+    def write_file(self, content):
+        tmp = self.song_temp_path + 'dl_song-{:%m-%d-%H:%M}'.format(datetime.datetime.now()) + '.mid'
+        try:
+            with open(tmp, 'w+') as f:
+                f.write(content)
+            return tmp
+        except:
+            return None
+ 
     def set_params_by_id(self, enc_id):
         toks = enc_id.split('-')
         del toks[:2]
         i = 0
         for t in toks:
             self.params[self.params.keys()[i]] = t 
+            logging.debug('toks: ' + self.params.keys()[i] + ' ' + str(t))
             i += 1
 
+    def get_role(self, inst):
+        role = None
+        role_grp = None
+        if(inst):
+            inst += 1
+            if inst == int(self.params['inst_1']):
+                role = int(self.params['role_1'])
+            elif inst == int(self.params['inst_2']):
+                role = int(self.params['role_2'])
+            elif inst == int(self.params['inst_3']):
+                role = int(self.params['role_3'])
+            elif inst == int(self.params['inst_4']):
+                role = int(self.params['role_4'])
+            elif inst == int(self.params['inst_5']):
+                    role = int(self.params['role_5'])
+        if(role):
+            if role in self.vld.roles_generic:
+                 role_grp = 'generic'
+            elif role in self.vld.roles_polyphonic:
+                 role_grp = 'polyphonic'
+            elif role in self.vld.roles_upper_lead:
+                 role_grp = 'upper_lead'
+            elif role in self.vld.roles_lower_lead:
+                 role_grp = 'lower_lead'
+            elif role in self.vld.roles_moving_lead:
+                 role_grp = 'moving_lead'
+            elif role in self.vld.roles_straight_lead:
+                 role_grp = 'straight_lead'
+            elif role in self.vld.roles_chords:
+                 role_grp = 'chords'
+            elif role in self.vld.roles_bass:
+                 role_grp = 'bass'
+        return role_grp 
 
-        '''
-        try:
-            response = wt.send_url_request()
-            #logging.debug(wt.nkm_encoded_url())
-            logging.debug('MIDI file requested from ' + wt.nkm_encoded_url())
-            if(response.content):
-                logging.debug('Got a new song from Wolftones')
-                curses.echo()
-                #tmp = 'songs/' + get_param("Enter song filename: ") + '.mid'
-                songfile = 'songs/temp/raw_song' + '{:%m-%d}'.format(datetime.datetime.now()) + '.mid'
-                with open(songfile, 'w+') as f:
-                    f.write(response.content)
-                curses.noecho()
-                return songfile
-        except:
-            song_file = 'songs/save/warriorcatssong.mid'
-        '''
+        
 #obj_params = collections.OrderedDict( [ ('genre','45'), ('rule_type','15'), ('rule','10'), ('cyc_bdry','1'), ('seed','34444'), ('duration','21'), ('bpm','130'), ('npb','4'), ('scale','2050'), ('pitch','44'), ('mystery','0'), ('inst_1','31'), ('role_1','10'), ('inst_2','95'), ('role_2','135'), ('inst_3','0'), ('role_3','0'), ('inst_4','0'), ('role_4','0'), ('inst_5','0'), ('role_5','0'), ('perc','711') ] )

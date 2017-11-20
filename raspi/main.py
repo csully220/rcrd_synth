@@ -61,7 +61,7 @@ wt = WolfTones()
 def main():
     _ctrl_src = 'GUI'
     lock = Lock()
-    thr_plyr.change_song(default_songfile)
+    thr_plyr.load_song(default_songfile)
     while(thr_gui.isAlive() and thr_plyr.isAlive()):
         if(_ctrl_src == 'GUI'):
             if(gui_ctrls['val_chg'] == True):
@@ -72,30 +72,27 @@ def main():
             #download a fresh MIDI file
             if(gui_ctrls['cmd'] == 'NEWSONG'):
                 gui_ctrls['cmd'] = 'NONE'
-                try:
-                    response = wt.get_by_genre()
-                    #logging.debug('MIDI file requested from ' + wt.nkm_encoded_url())
-                    if(response.content):
-                        logging.debug('Got a new song from Wolftones')
-                        tmp = song_temp_path + 'dl_song-{:%m-%d-%H:%M}'.format(datetime.datetime.now()) + '.mid'
-                        with open(tmp, 'w+') as f:
-                            f.write(response.content)
-                        thr_plyr.change_song(tmp)
-                except:
-                    thr_plyr.change_song(default_songfile)
-                    logging.debug('Wolftones retrieval failed')
+                #try:
+                filename = wt.get_by_genre()
+                #logging.debug('MIDI file requested from ' + wt.nkm_encoded_url())
+                logging.debug('Retrieved new song ' + filename)
+                logging.debug('AFTER RETREIVAL ********** NKM-G-' + wt.nkm_encoded_id())
+                thr_plyr.load_song(filename)
+                #except:
+                #    thr_plyr.load_song(default_songfile)
+                #    logging.debug('Retrieval failed')
 
             if(gui_ctrls['cmd'] == 'LOADSONG'):
                 gui_ctrls['cmd'] = 'NONE'
-                logging.debug('loading a saved song -  ' + gui_ctrls['songfile'])
+                logging.debug('loading saved song ' + gui_ctrls['songfile'])
                 songfiles = [f for f in listdir(song_save_path) if isfile(join(song_save_path, f))]
-                for s in songfiles:
-                    logging.debug(str(s))
-                    logging.debug(str(gui_ctrls['songfile'] in songfiles))
+                #for s in songfiles:
+                #    logging.debug(str(s))
+                #    logging.debug(str(gui_ctrls['songfile'] in songfiles))
                 if(gui_ctrls['songfile'] in songfiles):
                     tmp = song_save_path + gui_ctrls['songfile']
                     logging.debug(tmp)
-                    thr_plyr.change_song(tmp)
+                    thr_plyr.load_song(tmp)
                 else:
                     logging.debug('songfile not in saved')
 

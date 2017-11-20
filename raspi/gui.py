@@ -73,7 +73,7 @@ class GuiThread(threading.Thread):
                         self.join()
                     if(tok0 == 'play' or tok0 == 'p'):
                         self.gui_ctrls['play'] = not self.gui_ctrls['play']
-                        logging.debug('val_chg play: ' + str(self.gui_ctrls['play']))
+                        #logging.debug('val_chg play: ' + str(self.gui_ctrls['play']))
                         _val_chg = True
                     if(tok0 == 'newsong'):
                         self.gui_ctrls['cmd'] = 'NEWSONG'
