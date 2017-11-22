@@ -7,9 +7,6 @@ import Queue
 from mido import MidiFile
 import wolftones_validate
 
-
-
-
 class PlayerThread(threading.Thread):
 
     def __init__(self, s_env, _songfile, _plyr_ctrls):

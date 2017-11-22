@@ -167,3 +167,67 @@ class WolfTonesValidate():
                            
         self.valid_perc = [0,1,101,102,121,122,123,127,128,129,131,132,133,301,311,322,323,325,321,324,361,362,331,332,333,334,341,342,343,344,345,346,347,348,349,351,352,353,501,401,402,403,404,431,432,433,434,551,552,553,555,554,556,571,572,573,574,575,576,577,578,579,584,586,581,582,583,585,112,113,114,115,451,452,453,454,455,456,457,458,459,460,461,462,463,651,652,681,682,711,712,713,714,601,715,721,722,723,801,803,804,805,807,808,809,810,821,822,823,830,901,911] 
                            
+    def get_role(self, role = None):
+        role_grp = None
+        if(role):
+            if role in self.roles_generic:
+                 role_grp = 'generic'
+            elif role in self.roles_polyphonic:
+                 role_grp = 'polyphonic'
+            elif role in self.roles_upper_lead:
+                 role_grp = 'upper_lead'
+            elif role in self.roles_lower_lead:
+                 role_grp = 'lower_lead'
+            elif role in self.roles_moving_lead:
+                 role_grp = 'moving_lead'
+            elif role in self.roles_straight_lead:
+                 role_grp = 'straight_lead'
+            elif role in self.roles_chords:
+                 role_grp = 'chords'
+            elif role in self.roles_bass:
+                 role_grp = 'bass'
+        return role_grp
+
+
+    def validate_param(self, key, value):
+        if key == 'genre':
+            if int(value) in self.valid_genres.values():
+                return True
+        elif key == 'rule_type':
+            if int(value) in self.valid_rule_types:
+                return True
+        elif key == 'rule':
+            if self.rule_range[0] <= int(value) <= self.rule_range[1]:
+                return True
+        elif key == 'cyc_bdry':
+            if int(value) == 1 or int(value) == 0:
+                return True
+        elif key == 'seed':
+            if self.seed_range[0] <= int(value) <= self.seed_range[1]:
+                return True
+        elif key == 'duration':
+            if self.duration_range[0] <= int(value) <= self.duration_range[1]:
+                return True
+        elif key == 'bpm':
+            if self.bpm_range[0] <= int(value) <= self.bpm_range[1]:
+                return True
+        elif key == 'npb':
+            if self.npb_range[0] <= int(value) <= self.npb_range[1]:
+                return True
+        elif key == 'scale':
+            #if int(value) in self.valid_scales:
+                #return True
+            return True
+        elif key == 'pitch':
+            if self.pitch_min <= int(value) <= self.pitch_max:
+                return True
+        elif key == 'inst_1' or key == 'inst_2' or key == 'inst_3' or key == 'inst_4':
+            if int(value) in self.valid_inst.values():
+                return True
+        elif key == 'role_1' or key == 'role_2' or key == 'role_3' or key == 'role_4':
+            if int(value) in self.valid_roles:
+                return True
+        elif key == 'perc':
+            if int(value) in self.valid_perc:
+                return True
+        return False

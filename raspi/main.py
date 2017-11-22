@@ -33,7 +33,7 @@ global gui_ctrls
 gui_ctrls = {'knob0':0, 'knob1':0,'knob2':0,'knob3':0,'knob4':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'songfile':'warriorcatssong.mid', 'mode':'DEFAULT', 'cmd':'NONE', 'play':False, 'val_chg':False}
 
 global plyr_ctrls
-plyr_ctrls = {'knob0':0, 'knob1':0,'knob2':0,'knob3':0,'knob4':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'songfile':'warriorcatssong.mid', 'mode':'DEFAULT', 'cmd':'NONE', 'play':False, 'val_chg':False}
+plyr_ctrls = {'chords':0,'lead':0,'bass':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'songfile':'warriorcatssong.mid', 'mode':'DEFAULT', 'cmd':'NONE', 'play':False, 'val_chg':False}
 
 ################################################### INITIALIZE ############################
 
@@ -60,50 +60,48 @@ wt = WolfTones()
 
 def main():
     _ctrl_src = 'GUI'
-    lock = Lock()
+    #lock = Lock()
+    wt.add_track_info(default_songfile)
     thr_plyr.load_song(default_songfile)
     while(thr_gui.isAlive() and thr_plyr.isAlive()):
         if(_ctrl_src == 'GUI'):
             if(gui_ctrls['val_chg'] == True):
                 thr_plyr.plyr_ctrls = thr_gui.gui_ctrls 
-            #start playing 
-            #if(gui_ctrls['play'] == True):
-            #    logging.debug('Playing...')
-            #download a fresh MIDI file
-            if(gui_ctrls['cmd'] == 'NEWSONG'):
-                gui_ctrls['cmd'] = 'NONE'
+                if(gui_ctrls['cmd'] == 'NEWSONG'):
+                    gui_ctrls['cmd'] = 'NONE'
+                    #try:
+                    filename = wt.get_by_genre()
+                    #logging.debug('MIDI file requested from ' + wt.nkm_encoded_url())
+                    logging.debug('Retrieved new song ' + filename)
+                    logging.debug('AFTER RETREIVAL ********** NKM-G-' + wt._nkm_encoded_id())
+                    thr_plyr.load_song(filename)
+                    #except:
+                    #    thr_plyr.load_song(default_songfile)
+                    #    logging.debug('Retrieval failed')
+
+                if(gui_ctrls['cmd'] == 'LOADSONG'):
+                    gui_ctrls['cmd'] = 'NONE'
+                    logging.debug('loading saved song ' + gui_ctrls['songfile'])
+                    songfiles = [f for f in listdir(song_save_path) if isfile(join(song_save_path, f))]
+                    #for s in songfiles:
+                    #    logging.debug(str(s))
+                    #    logging.debug(str(gui_ctrls['songfile'] in songfiles))
+                    if(gui_ctrls['songfile'] in songfiles):
+                        tmp = song_save_path + gui_ctrls['songfile']
+                        logging.debug(tmp)
+                        thr_plyr.load_song(tmp)
+                    else:
+                        logging.debug('songfile not in saved')
+
+                #lock.acquire()
                 #try:
-                filename = wt.get_by_genre()
-                #logging.debug('MIDI file requested from ' + wt.nkm_encoded_url())
-                logging.debug('Retrieved new song ' + filename)
-                logging.debug('AFTER RETREIVAL ********** NKM-G-' + wt.nkm_encoded_id())
-                thr_plyr.load_song(filename)
-                #except:
-                #    thr_plyr.load_song(default_songfile)
-                #    logging.debug('Retrieval failed')
+                    #thr_plyr.ctrls.values() = thr_gui.ctrls.values() 
 
-            if(gui_ctrls['cmd'] == 'LOADSONG'):
-                gui_ctrls['cmd'] = 'NONE'
-                logging.debug('loading saved song ' + gui_ctrls['songfile'])
-                songfiles = [f for f in listdir(song_save_path) if isfile(join(song_save_path, f))]
-                #for s in songfiles:
-                #    logging.debug(str(s))
-                #    logging.debug(str(gui_ctrls['songfile'] in songfiles))
-                if(gui_ctrls['songfile'] in songfiles):
-                    tmp = song_save_path + gui_ctrls['songfile']
-                    logging.debug(tmp)
-                    thr_plyr.load_song(tmp)
-                else:
-                    logging.debug('songfile not in saved')
-
-            #lock.acquire()
-            #try:
-                #thr_plyr.ctrls.values() = thr_gui.ctrls.values() 
-
-            gui_ctrls['val_chg'] == False
-            #finally:
-                #lock.release()
+                gui_ctrls['val_chg'] == False
+                #finally:
+                    #lock.release()
         time.sleep(0.05)
+
     if(thr_plyr.isAlive()):
         thr_plyr.join()
     if(thr_gui.isAlive()):
