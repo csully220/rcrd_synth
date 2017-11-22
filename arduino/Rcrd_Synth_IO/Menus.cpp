@@ -13,7 +13,7 @@
 
     void Menus::initBlue(){
         blue_lcd.init(); //initialize the lcd
-        blue_lcd.backlight(); //open the backlight
+        blue_lcd.backlight(); //turn on backlight
     }
    
     void Menus::dispKnobVals(byte* knob_values){
@@ -149,7 +149,6 @@
       index = 0;
       changeItem(0);
     }
-
     byte Menus::getMsgByte(){
       has_msg = false;
       return msg_byte;
@@ -159,6 +158,7 @@
       if(current_menu != TOP)
         changeMenu(TOP);
     }
+/*
     void Menus::dispSwitchesMenu(){
       if(current_menu != SWITCHES)
         changeMenu(SWITCHES);
@@ -167,4 +167,4 @@
         red_lcd.setPosition(2,0);
         red_lcd.print(i);
     }
-
+*/

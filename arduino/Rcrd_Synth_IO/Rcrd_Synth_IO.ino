@@ -43,17 +43,14 @@ void loop() {
       packSwData();
       
       msg_ready = false;
-
       
       for(int i=0; i<=7; i++){
           Serial.write(output_buf[i]);
       }
       Serial.print("\n");
       
-
       if(sw_values[6])
           menus.dispTopMenu();
-
   }  
   
 

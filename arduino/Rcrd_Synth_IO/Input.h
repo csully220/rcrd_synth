@@ -61,4 +61,3 @@ bool updateInput(){
   sw_values[8] = !digitalRead(sw_rot_enc_chan);
   return changed;
 }
-
