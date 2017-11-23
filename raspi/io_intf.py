@@ -39,11 +39,11 @@ class IoIntfThread(threading.Thread):
                 self.io_ctrls['knob2'] = ord(tmp[3])
                 self.io_ctrls['knob1'] = ord(tmp[4])
                 self.io_ctrls['knob0'] = ord(tmp[5])
-                logging.debug('getting knob input')
+                #logging.debug('getting knob input')
                 sw = ord(tmp[6])
-                logging.debug(str(sw))
+                #logging.debug(str(sw))
                 for r in range(8):
-                    logging.debug(str(self.sw_names[r]))
+                    #logging.debug(str(self.sw_names[r]))
                     if(sw & (int('00000001') << r)):
                         self.io_ctrls[self.sw_names[r]] = True
                     else:
@@ -73,7 +73,7 @@ class IoIntfThread(threading.Thread):
         logging.debug('Running IO thread...')
         while(not self.stoprequest.isSet()):
             if(self.unpack_serial()):
-                logging.debug('Getting new inputs...')
+                #logging.debug('Getting new inputs...')
                 
                 for i in range(5):
                     if(self.io_ctrls[knob_names[i]] != prev_knob[i]):

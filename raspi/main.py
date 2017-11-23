@@ -32,8 +32,10 @@ io_ctrls = {'knob0':0, 'knob1':0,'knob2':0,'knob3':0,'knob4':0, 'sw_12':0, 'sw_7
 global gui_ctrls
 gui_ctrls = {'knob0':0, 'knob1':0,'knob2':0,'knob3':0,'knob4':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'songfile':'warriorcatssong.mid', 'mode':'DEFAULT', 'cmd':'NONE', 'play':False, 'val_chg':False}
 
+main_ctrls = {'knob0':0, 'knob1':0,'knob2':0,'knob3':0,'knob4':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'songfile':'warriorcatssong.mid', 'mode':'DEFAULT', 'cmd':'NONE', 'play':False, 'val_chg':False}
+
 global plyr_ctrls
-plyr_ctrls = {'chords':0,'lead':0,'bass':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'songfile':'warriorcatssong.mid', 'mode':'DEFAULT', 'cmd':'NONE', 'play':False, 'val_chg':False}
+plyr_ctrls = {'play':False, 'vel_perc':0, 'vel_chords':0,'vel_lead':0,'vel_bass':0, 'ch_chords':0,'ch_lead':0,'ch_bass':0, 'songfile':'warriorcatssong.mid'}
 
 ################################################### INITIALIZE ############################
 
@@ -60,10 +62,30 @@ wt = WolfTones()
 def main():
     #lock = Lock()
     wt.add_track_info(default_songfile)
-    thr_plyr.load_song(default_songfile)
+    thr_plyr.load_song(default_songfile, chan_roles = {})
     while(thr_gui.isAlive() and thr_plyr.isAlive() and thr_iointf.isAlive()):
-        if(gui_ctrls['val_chg'] == True):
-            thr_plyr.plyr_ctrls = thr_gui.gui_ctrls 
+        if(gui_ctrls['val_chg'] or io_ctrls['val_chg']):
+            gui_ctrls['val_chg'] = False
+            io_ctrls['val_chg'] = False
+            i = 0
+            for key in main_ctrls:
+                main_ctrls[key] = gui_ctrls[key] or io_ctrls[key]
+            
+            plyr_ctrls['play'] = main_ctrls['play'] 
+            plyr_ctrls['vel_perc'] = io_ctrls['knob0'] 
+            plyr_ctrls['vel_generic'] = io_ctrls['knob1'] 
+            plyr_ctrls['vel_poly'] = io_ctrls['knob1'] 
+            plyr_ctrls['vel_upr_ld'] = io_ctrls['knob2']
+            plyr_ctrls['vel_lwr_ld'] = io_ctrls['knob2']
+            plyr_ctrls['vel_mov_ld'] = io_ctrls['knob2']
+            plyr_ctrls['vel_str_ld'] = io_ctrls['knob2']
+            plyr_ctrls['vel_chords'] = io_ctrls['knob3']
+            plyr_ctrls['vel_bass'] = io_ctrls['knob4']
+            #plyr_ctrls['perc'] = main_ctrls['knob5']
+            #plyr_ctrls['perc'] = 
+            #plyr_ctrls['perc'] = 
+            #plyr_ctrls['perc'] = 
+            
             if(gui_ctrls['cmd'] == 'NEWSONG'):
                 gui_ctrls['cmd'] = 'NONE'
                 #try:
@@ -71,7 +93,7 @@ def main():
                 #logging.debug('MIDI file requested from ' + wt.nkm_encoded_url())
                 logging.debug('Retrieved new song ' + filename)
                 logging.debug('AFTER RETREIVAL ********** NKM-G-' + wt._nkm_encoded_id())
-                thr_plyr.load_song(filename)
+                thr_plyr.load_song(filename, wt.chan_roles)
                 #except:
                 #    thr_plyr.load_song(default_songfile)
                 #    logging.debug('Retrieval failed')
@@ -86,7 +108,7 @@ def main():
                 if(gui_ctrls['songfile'] in songfiles):
                     tmp = song_save_path + gui_ctrls['songfile']
                     logging.debug(tmp)
-                    thr_plyr.load_song(tmp)
+                    thr_plyr.load_song(tmp,  wt.chan_roles)
                 else:
                     logging.debug('songfile not in saved')
 
@@ -94,7 +116,6 @@ def main():
             #try:
                 #thr_plyr.ctrls.values() = thr_gui.ctrls.values() 
 
-            gui_ctrls['val_chg'] == False
             #finally:
                 #lock.release()
         time.sleep(0.05)

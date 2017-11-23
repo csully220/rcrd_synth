@@ -40,28 +40,29 @@ class PlayerThread(threading.Thread):
     def stop(self):
         self.plyr_ctrls['play'] = False
 
-    def load_song(self, filepath):
+    def load_song(self, filepath, chan_roles):
             self.stop()
         #try: 
             self.midifile = MidiFile(filepath)
             self.plyr_ctrls['songfile'] = filepath
             logging.debug(str(self.midifile.tracks))
             self.songfile = filepath
+            self.chan_roles = chan_roles
 
     def run(self):
         while(not self.stoprequest.isSet()):
-            #while(self.io_ctrls['playing'] == True):
             while(self.plyr_ctrls['play'] == True and not self.stoprequest.isSet()):
                 was_playing = True
                 for msg in self.midifile.play():
-                    #if(self.io_ctrls['playing'] and not self.stoprequest.isSet()):
                     if(self.plyr_ctrls['play'] == True and not self.stoprequest.isSet()):
 #-------------- MODIFY MIDI MESSAGES ON THE FLY  ------------------------
+                        
                         # Here do things that only happen once when a value changes
                         #if(self.plyr_ctrls['val_chg'] == True):
                         #    pass
                         #if(True):
-                            #if(msg.type == 'note_on'):
+                        if(msg.type == 'note_on'):
+                            msg.velocity = self.plyr_ctrls['vel_' + self.chan_roles[msg.channel]]
                                 #if(sw_33 and msg.channel == knob1):
                                 #    msg.note += 7
                                 #if(self.plyr_ctrls['mode'] == 'ISO_CH'):

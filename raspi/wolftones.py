@@ -46,8 +46,9 @@ class WolfTones:
             ('role_5','0'),
             ('perc','711')
         ] )
+
+        self.chan_roles = {} 
         self.filename = ''
-        self.midifile = None
 
     def set_param(self, key, value):
         if self.validate(key, value):
@@ -94,10 +95,13 @@ class WolfTones:
 
     def add_track_info(self, filename):
         md = MidiFile(filename)
+        self.chan_roles.clear()
+        self.chan_roles[9] = 'perc'
         for trk in md.tracks:
             for msg in trk:
                 if msg.type == 'program_change':
                     inst = msg.program
+                    chan = msg.channel
                     inst += 1
                     if inst == int(self.params['inst_1']):
                         role_enc = int(self.params['role_1'])
@@ -114,10 +118,13 @@ class WolfTones:
                     role = self.vld.get_role(role_enc)
                     if(role):
                         trk.name = role
+                        self.chan_roles[chan] = role
+                        logging.debug(str(chan) + ' ' + self.chan_roles[chan])
                     else:
                         trk.name = 'None'
                     break
-        md.save(filename) 
+        md.save(filename)
+        
 
     #def write_file(self, filename = None, content = None, temp = False):
     def write_file(self, content):

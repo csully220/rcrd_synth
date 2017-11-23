@@ -173,19 +173,19 @@ class WolfTonesValidate():
             if role in self.roles_generic:
                  role_grp = 'generic'
             elif role in self.roles_polyphonic:
-                 role_grp = 'polyphonic'
+                 role_grp = 'poly' #polyphonic
             elif role in self.roles_upper_lead:
-                 role_grp = 'upper_lead'
+                 role_grp = 'upr_ld' #upper_lead
             elif role in self.roles_lower_lead:
-                 role_grp = 'lower_lead'
+                 role_grp = 'lwr_ld' #lower_lead
             elif role in self.roles_moving_lead:
-                 role_grp = 'moving_lead'
+                 role_grp = 'mov_ld' #moving_lead 
             elif role in self.roles_straight_lead:
-                 role_grp = 'straight_lead'
+                 role_grp = 'str_ld' #straight_lead
             elif role in self.roles_chords:
-                 role_grp = 'chords'
+                 role_grp = 'chords' #chords
             elif role in self.roles_bass:
-                 role_grp = 'bass'
+                 role_grp = 'bass' #bass
         return role_grp
 
 
