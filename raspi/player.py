@@ -3,11 +3,11 @@ import threading
 import re
 import random
 import logging
-import Queue
 from mido import MidiFile
-import wolftones_validate
 
 class PlayerThread(threading.Thread):
+
+    global plyr_ctrls
 
     def __init__(self, s_env, _songfile, _plyr_ctrls):
         super(PlayerThread, self).__init__()
@@ -15,7 +15,7 @@ class PlayerThread(threading.Thread):
         self.stoprequest = threading.Event()
         self.songfile = _songfile
         self.plyr_ctrls = _plyr_ctrls
-        self.channels_in_use = []
+        self.chan_roles = [0 for i in range(16)] 
         self.midifile = MidiFile(_songfile)
 
         #get the portname (system specific)
@@ -34,35 +34,39 @@ class PlayerThread(threading.Thread):
         self.stoprequest.set()
         super(PlayerThread, self).join(timeout)
 
-    def play(self):
-        self.plyr_ctrls['play'] = True
-
-    def stop(self):
-        self.plyr_ctrls['play'] = False
-
-    def load_song(self, filepath, chan_roles):
-            self.stop()
-        #try: 
+    def load_song(self, filepath):
+            #self.stop()
             self.midifile = MidiFile(filepath)
             self.plyr_ctrls['songfile'] = filepath
-            logging.debug(str(self.midifile.tracks))
+            #logging.debug(str(self.midifile.tracks))
             self.songfile = filepath
-            self.chan_roles = chan_roles
-
+            for trk in self.midifile.tracks:
+                s = trk.name.split(':')
+                chan = s[0]
+                role = s[1] 
+                #logging.debug('read  ' + chan + ' as ' + role)
+                self.chan_roles[int(chan)] = role
+                logging.debug('Channel ' + str(chan) + ' is ' + role)
+                
     def run(self):
         while(not self.stoprequest.isSet()):
             while(self.plyr_ctrls['play'] == True and not self.stoprequest.isSet()):
                 was_playing = True
+                ch_ro = self.chan_roles
                 for msg in self.midifile.play():
                     if(self.plyr_ctrls['play'] == True and not self.stoprequest.isSet()):
 #-------------- MODIFY MIDI MESSAGES ON THE FLY  ------------------------
-                        
                         # Here do things that only happen once when a value changes
                         #if(self.plyr_ctrls['val_chg'] == True):
                         #    pass
                         #if(True):
                         if(msg.type == 'note_on'):
-                            msg.velocity = self.plyr_ctrls['vel_' + self.chan_roles[msg.channel]]
+                        #    role_vel = 'vel_' + self.chan_roles[msg.channel]
+                        #    if(role_vel):
+                             logging.debug('chan' + str(msg.channel))
+                             logging.debug(ch_ro[msg.channel])
+                             logging.debug(str(self.plyr_ctrls[ch_ro[msg.channel]]))
+                        #    logging.debug(msg.velocity)
                                 #if(sw_33 and msg.channel == knob1):
                                 #    msg.note += 7
                                 #if(self.plyr_ctrls['mode'] == 'ISO_CH'):
@@ -74,7 +78,7 @@ class PlayerThread(threading.Thread):
                                 #if(sw_7):
                                 #    if(msg.channel == 9):
                                 #        msg.velocity = 127
- ############# SEND MIDI MESSAGE #######################################
+############# SEND MIDI MESSAGE #######################################
                         self.outport.send(msg)
                     else:
                         if(was_playing == True):

@@ -7,12 +7,18 @@ from threading import Lock
 import logging
 import socket
 import Queue
+
+import wolftones
 from wolftones import WolfTones
+
+import io_intf 
 from io_intf import IoIntfThread 
+
 import player
 from player import PlayerThread
+
+import gui
 from gui import GuiThread
-import copy
 from os import listdir
 from os.path import isfile, join
 
@@ -22,78 +28,87 @@ logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG, filemode='w', fo
 song_save_path = '/home/pi/rcrd_synth/raspi/songs/save/'
 song_temp_path = '/home/pi/rcrd_synth/raspi/songs/temp/'
 
-default_songfile = song_save_path + 'warriorcatssong.mid'
+#default_songfile = song_save_path + 'warriorcatssong.mid'
+default_songfile = song_temp_path + '25-31-149244754-1-16087-58-58-4-2709-51-0-5-102-36-502-54-203-0-0-5-122-0.mid'
+
 
 valid_cmd_names = ['NONE', 'ISO_CHNL', 'NEWSONG', 'POWEROFF']
 
-global io_ctrls
 io_ctrls = {'knob0':0, 'knob1':0,'knob2':0,'knob3':0,'knob4':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'songfile':'warriorcatssong.mid', 'mode':'DEFAULT', 'cmd':'NONE', 'play':False, 'val_chg':False}
 
-global gui_ctrls
 gui_ctrls = {'knob0':0, 'knob1':0,'knob2':0,'knob3':0,'knob4':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'songfile':'warriorcatssong.mid', 'mode':'DEFAULT', 'cmd':'NONE', 'play':False, 'val_chg':False}
 
 main_ctrls = {'knob0':0, 'knob1':0,'knob2':0,'knob3':0,'knob4':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'songfile':'warriorcatssong.mid', 'mode':'DEFAULT', 'cmd':'NONE', 'play':False, 'val_chg':False}
 
-global plyr_ctrls
-plyr_ctrls = {'play':False, 'vel_perc':0, 'vel_chords':0,'vel_lead':0,'vel_bass':0, 'ch_chords':0,'ch_lead':0,'ch_bass':0, 'songfile':'warriorcatssong.mid'}
+plyr_ctrls = {'play':False, 'perc':30, 'generic':30,'poly':30, 'upr_ld':30, 'lwr_ld':30, 'mov_ld':30, 'str_ld':30, 'chords':30, 'bass':30, 'songfile':'warriorcatssong.mid'}
 
 ################################################### INITIALIZE ############################
 
-env = socket.gethostname()
-
-thr_plyr = PlayerThread(env, default_songfile, plyr_ctrls)
-thr_plyr.setDaemon(True)
-thr_plyr.start()
-
-thr_gui = GuiThread(gui_ctrls, io_ctrls)
-thr_gui.setDaemon(True)
-thr_gui.start()
-
-if(env == 'record_synth'):
-    thr_iointf = IoIntfThread(io_ctrls)
-    thr_iointf.setDaemon(True)
-    thr_iointf.start()
-
-wt = WolfTones()
 ################################################# END INITIALIZE ############################
 
-#------------------------------------------------MAIN LOOP-----------------------------------
-
 def main():
-    #lock = Lock()
-    wt.add_track_info(default_songfile)
-    thr_plyr.load_song(default_songfile, chan_roles = {})
+
+    global io_ctrls
+    global gui_ctrls
+    global plyr_ctrls
+
+    env = socket.gethostname()
+    
+    thr_plyr = PlayerThread(env, default_songfile, plyr_ctrls)
+    thr_plyr.setDaemon(True)
+    thr_plyr.start()
+    
+    thr_gui = GuiThread(gui_ctrls, io_ctrls)
+    thr_gui.setDaemon(True)
+    thr_gui.start()
+    
+    if(env == 'record_synth'):
+        thr_iointf = IoIntfThread(io_ctrls)
+        thr_iointf.setDaemon(True)
+        thr_iointf.start()
+    
+    wt = WolfTones()
+    wt.load_file(default_songfile)
+    thr_plyr.load_song(default_songfile)
+
     while(thr_gui.isAlive() and thr_plyr.isAlive() and thr_iointf.isAlive()):
         if(gui_ctrls['val_chg'] or io_ctrls['val_chg']):
             gui_ctrls['val_chg'] = False
             io_ctrls['val_chg'] = False
-            i = 0
+
             for key in main_ctrls:
                 main_ctrls[key] = gui_ctrls[key] or io_ctrls[key]
             
-            plyr_ctrls['play'] = main_ctrls['play'] 
-            plyr_ctrls['vel_perc'] = io_ctrls['knob0'] 
-            plyr_ctrls['vel_generic'] = io_ctrls['knob1'] 
-            plyr_ctrls['vel_poly'] = io_ctrls['knob1'] 
-            plyr_ctrls['vel_upr_ld'] = io_ctrls['knob2']
-            plyr_ctrls['vel_lwr_ld'] = io_ctrls['knob2']
-            plyr_ctrls['vel_mov_ld'] = io_ctrls['knob2']
-            plyr_ctrls['vel_str_ld'] = io_ctrls['knob2']
-            plyr_ctrls['vel_chords'] = io_ctrls['knob3']
-            plyr_ctrls['vel_bass'] = io_ctrls['knob4']
-            #plyr_ctrls['perc'] = main_ctrls['knob5']
-            #plyr_ctrls['perc'] = 
-            #plyr_ctrls['perc'] = 
-            #plyr_ctrls['perc'] = 
+            plyr_ctrls['play'] = main_ctrls['play'] or io_ctrls['sw_right'] 
+            #plyr_ctrls['vel_perc'] = io_ctrls['knob0'] 
+            #logging.debug('io knob0 :' + str(io_ctrls['knob0']))
+            #logging.debug('plyr perc vel:' +  str(plyr_ctrls['vel_perc']))
+            #plyr_ctrls['generic'] = gui_ctrls['knob0'] 
+            plyr_ctrls['generic'] = io_ctrls['knob0'] 
+            #plyr_ctrls['poly'] = gui_ctrls['knob1'] 
+            plyr_ctrls['poly'] = io_ctrls['knob1'] 
+            #plyr_ctrls['upr_ld'] = gui_ctrls['knob1']
+            plyr_ctrls['upr_ld'] = io_ctrls['knob1']
+            #plyr_ctrls['lwr_ld'] = gui_ctrls['knob1']
+            plyr_ctrls['lwr_ld'] = io_ctrls['knob1']
+            #plyr_ctrls['mov_ld'] = gui_ctrls['knob1']
+            plyr_ctrls['mov_ld'] = io_ctrls['knob1']
+            #plyr_ctrls['str_ld'] = gui_ctrls['knob1']
+            plyr_ctrls['str_ld'] = io_ctrls['knob1']
+            #plyr_ctrls['chords'] = gui_ctrls['knob2']
+            plyr_ctrls['chords'] = io_ctrls['knob2']
+            #plyr_ctrls['bass'] = gui_ctrls['knob3']
+            plyr_ctrls['bass'] = io_ctrls['knob3']
+            #plyr_ctrls['perc'] = main_ctrls['knob4']
+            plyr_ctrls['perc'] = io_ctrls['knob4']
             
             if(gui_ctrls['cmd'] == 'NEWSONG'):
                 gui_ctrls['cmd'] = 'NONE'
                 #try:
                 filename = wt.get_by_genre()
-                #logging.debug('MIDI file requested from ' + wt.nkm_encoded_url())
-                logging.debug('Retrieved new song ' + filename)
-                logging.debug('AFTER RETREIVAL ********** NKM-G-' + wt._nkm_encoded_id())
-                thr_plyr.load_song(filename, wt.chan_roles)
+                logging.debug('New song: ' + filename)
+                #logging.debug('AFTER RETREIVAL ********** NKM-G-' + wt._nkm_encoded_id())
+                thr_plyr.load_song(filename)
                 #except:
                 #    thr_plyr.load_song(default_songfile)
                 #    logging.debug('Retrieval failed')
@@ -108,16 +123,16 @@ def main():
                 if(gui_ctrls['songfile'] in songfiles):
                     tmp = song_save_path + gui_ctrls['songfile']
                     logging.debug(tmp)
-                    thr_plyr.load_song(tmp,  wt.chan_roles)
+                    thr_plyr.load_song(tmp)
                 else:
                     logging.debug('songfile not in saved')
 
             #lock.acquire()
             #try:
                 #thr_plyr.ctrls.values() = thr_gui.ctrls.values() 
-
             #finally:
                 #lock.release()
+
         time.sleep(0.05)
 
     if(thr_plyr.isAlive()):

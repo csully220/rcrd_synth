@@ -3,12 +3,13 @@
     Menus::Menus(SerLCD& ser_lcd, LiquidCrystal_I2C& i2c_lcd): red_lcd(ser_lcd), blue_lcd(i2c_lcd){
       current_menu = TOP;
       has_msg = false;
+      msg_byte = BM_NONE; 
     }
     
     void Menus::initRed(){
         red_lcd.begin();
         red_lcd.clear();
-        red_lcd.print("It works    !");
+        red_lcd.print("Record Synth!");
     }
 
     void Menus::initBlue(){

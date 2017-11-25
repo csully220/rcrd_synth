@@ -186,6 +186,8 @@ class WolfTonesValidate():
                  role_grp = 'chords' #chords
             elif role in self.roles_bass:
                  role_grp = 'bass' #bass
+            elif role == 0:
+                 role_grp = 'perc' #bass
         return role_grp
 
 

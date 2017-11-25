@@ -47,7 +47,6 @@ class WolfTones:
             ('perc','711')
         ] )
 
-        self.chan_roles = {} 
         self.filename = ''
 
     def set_param(self, key, value):
@@ -94,63 +93,78 @@ class WolfTones:
         return fn 
 
     def add_track_info(self, filename):
+        #logging.debug('adding track info')
         md = MidiFile(filename)
-        self.chan_roles.clear()
-        self.chan_roles[9] = 'perc'
+        i = 0
         for trk in md.tracks:
+            i += 1
+            #logging.debug('PARSING NEW TRACK '+ str(i))
             for msg in trk:
-                if msg.type == 'program_change':
-                    inst = msg.program
-                    chan = msg.channel
-                    inst += 1
-                    if inst == int(self.params['inst_1']):
-                        role_enc = int(self.params['role_1'])
-                    elif inst == int(self.params['inst_2']):
-                        role_enc = int(self.params['role_2'])
-                    elif inst == int(self.params['inst_3']):
-                        role_enc = int(self.params['role_3'])
-                    elif inst == int(self.params['inst_4']):
-                        role_enc = int(self.params['role_4'])
-                    elif inst == int(self.params['inst_5']):
-                        role_enc = int(self.params['role_5'])
-                    else:
-                        role_enc = 0
-                    role = self.vld.get_role(role_enc)
-                    if(role):
-                        trk.name = role
-                        self.chan_roles[chan] = role
-                        logging.debug(str(chan) + ' ' + self.chan_roles[chan])
-                    else:
-                        trk.name = 'None'
-                    break
+                try:
+                    if msg.type == 'program_change':
+                        inst = msg.program
+                        chan = int(msg.channel)
+                        role = None 
+                        inst += 1
+                        #logging.debug('inst: ' + str(inst))
+                        #logging.debug('chan: ' + str(chan))
+                        if inst == int(self.params['inst_1']):
+                            role_enc = int(self.params['role_1'])
+                        if inst == int(self.params['inst_2']):
+                            role_enc = int(self.params['role_2'])
+                        if inst == int(self.params['inst_3']):
+                            role_enc = int(self.params['role_3'])
+                        if inst == int(self.params['inst_4']):
+                            role_enc = int(self.params['role_4'])
+                        if inst == int(self.params['inst_5']):
+                            role_enc = int(self.params['role_5'])
+                        
+                        #try:
+                            #logging.debug('getting role')
+                        role = self.vld.get_role(role_enc)
+                        if(chan == 9 or inst == 1):
+                            role = 'perc'
+                        trk.name = str(chan) + ':' + role
+                        #logging.debug('Added channel  ' + trk.name)
+                        #except:
+                        #    trk.name = 'Fail'
+                        break
+                except:
+                    pass        
+        #logging.debug('inst1: ' + self.params['inst_1'])
+       # logging.debug('role1: ' + self.params['role_1'])
+       # logging.debug('inst2: ' + self.params['inst_2'])
+       # logging.debug('role2: ' + self.params['role_2'])
+       # logging.debug('inst3: ' + self.params['inst_3'])
+       # logging.debug('role3: ' + self.params['role_3'])
+       # logging.debug('inst4: ' + self.params['inst_4'])
+       # logging.debug('role4: ' + self.params['role_4'])
+       # logging.debug('inst5: ' + self.params['inst_5'])
+       # logging.debug('role5: ' + self.params['role_5'])
         md.save(filename)
         
-
-    #def write_file(self, filename = None, content = None, temp = False):
     def write_file(self, content):
-        #try:
-            filename = None
-            temp = True
-            if(not filename):
-                fn = 'dl_song-{:%m-%d-%H:%M}'.format(datetime.datetime.now()) + '.mid'
-            else:
-                #here we strip out any path elements, keeping only the filename so we only write in the saved song directory
-                fn = filename.split('/')
-                fn = fn[-1]
-                fn = fn[0]
-                fn += self.song_save_path
-            if(temp):
-            #save in the temp song folder
-                fn = self.song_temp_path + fn
-            else:
-            #save in the permanent folder
-                fn = self.song_save_path + fn 
-            if(content):
-                with open(fn, 'w+') as f:
-                    f.write(content)
-                return fn
-        #except:
-            #return False 
+        filename = None
+        temp = True
+        if(not filename):
+            #fn = 'dl_song-{:%m-%d-%H:%M}'.format(datetime.datetime.now()) + '.mid'
+            fn = self._nkm_encoded_id() + '.mid'
+        else:
+            #here we strip out any path elements, keeping only the filename so we only write in the saved song directory
+            fn = filename.split('/')
+            fn = fn[-1]
+            fn = fn[0]
+            fn += self.song_save_path
+        if(temp):
+        #save in the temp song folder
+            fn = self.song_temp_path + fn
+        else:
+        #save in the permanent folder
+            fn = self.song_save_path + fn 
+        if(content):
+            with open(fn, 'w+') as f:
+                f.write(content)
+            return fn
  
     def set_params_by_id(self, enc_id):
         toks = enc_id.split('-')
@@ -160,5 +174,14 @@ class WolfTones:
             self.params[self.params.keys()[i]] = t 
             #logging.debug('toks: ' + self.params.keys()[i] + ' ' + str(t))
             i += 1
+
+    def load_file(self, filename):
+        fn = filename.split('/')
+        fn = fn[-1]
+        fn = filename.split('.')
+        enc_id = fn[0]
+        self.set_params_by_id(enc_id)
+        self.add_track_info(filename)
+ 
 
 #obj_params = collections.OrderedDict( [ ('genre','45'), ('rule_type','15'), ('rule','10'), ('cyc_bdry','1'), ('seed','34444'), ('duration','21'), ('bpm','130'), ('npb','4'), ('scale','2050'), ('pitch','44'), ('mystery','0'), ('inst_1','31'), ('role_1','10'), ('inst_2','95'), ('role_2','135'), ('inst_3','0'), ('role_3','0'), ('inst_4','0'), ('role_4','0'), ('inst_5','0'), ('role_5','0'), ('perc','711') ] )
