@@ -7,12 +7,13 @@
 //output_buf[6]   SWITCHES
 //output_buf[7]   MESSAGE BYTE
 
-byte output_buf[8] = {0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+byte output_buf[8] = {0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0};
+
 
 
 void packKnobData(){
-	for(int i = 0; i <= 4; i++){
-    output_buf[i+1] = knob_values[i];
+  for(int i = 0; i <= 4; i++){
+    output_buf[i+1] = byte(knob_values[i]);
   }
 }
 
@@ -26,12 +27,17 @@ void packSwData(){
   }
   if(sw_values[7] > 0)
     output_buf[6] |= 1;
+    output_buf[6] = byte(output_buf[6]);
 }
 
 void packMsgByte(byte msg){
   output_buf[7] = msg;
 }
 
+void packMsgByte(){
+  //output_buf[7] = msg;
+  output_buf[7] = byte(0xC0);
+}
 //"12", "7", "AUTO", "START", "33","78", "LEFT", "RIGHT", "ROT ENC", "PROGRAM"
 // MSB  254    128      64     32   16     8        4         2         LSB
 //    0    80    40       20     10    8     4        2                     

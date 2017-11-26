@@ -44,9 +44,9 @@ bool updateInput(){
   byte temp;
 
   for(int i=0; i<=4; i++){
-      temp = analogRead(i)/15.0;
+      temp = analogRead(i)/8.0;
       if(temp != knob_values[i]){
-	        knob_values[i] = temp;
+          knob_values[i] = temp;
           changed = true;
       }
   }

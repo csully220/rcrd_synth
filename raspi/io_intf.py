@@ -24,7 +24,7 @@ class IoIntfThread(threading.Thread):
         self.io_ctrls = _io_ctrls
 
     def get_readline(self):
-        return self.ser.readline()
+        return bytearray(self.ser.readline())
 
     def join(self, timeout=None):
         logging.debug('Goodbye IO thread!')
@@ -40,7 +40,7 @@ class IoIntfThread(threading.Thread):
                 self.io_ctrls['knob2'] = ord(tmp[3])
                 self.io_ctrls['knob1'] = ord(tmp[4])
                 self.io_ctrls['knob0'] = ord(tmp[5])
-                logging.debug('getting knob input')
+                #logging.debug('getting knob input')
                 sw = ord(tmp[6])
                 #logging.debug(str(sw))
                 for r in range(8):
@@ -49,16 +49,22 @@ class IoIntfThread(threading.Thread):
                         self.io_ctrls[self.sw_names[r]] = True
                     else:
                         self.io_ctrls[self.sw_names[r]] = False
-                self.msg_byte = ord(tmp[7])
-                #logging.debug(ord(tmp[7]))
-                #if(ord(tmp[7]) >= b'\xC0'):
-                #    self.io_ctrls['cmd'] = self.commands[ord(tmp[7])]
-                #if(ord(tmp[7]) < b'\xC0'):
-                #    self.io_ctrls['mode'] = self.modes[ord(tmp[7])]
+                mb = ord(tmp[7])
+                logging.debug(str(mb))
+                if(mb):
+                    logging.debug('msg byte is something')
+                    logging.debug(str(mb))
+                    self.io_ctrls['mode'] = str(mb)
+   
+                #if(tmp[7] >= b'\xC0'):
+                #    self.io_ctrls['cmd'] = self.commands[tmp[7]]
+                #if(tmp[7] < b'\xC0'):
+                #    self.io_ctrls['mode'] = self.modes[tmp[7]]
                 return True
         #except:
-        #    self.ser.reset_input_buffer()
-            return False
+            else:
+                self.ser.reset_input_buffer()
+                return False
 
     def close_port(self):
         try:
@@ -74,24 +80,20 @@ class IoIntfThread(threading.Thread):
         while(not self.stoprequest.isSet()):
             if(self.unpack_serial()):
                 self.io_ctrls['val_chg'] = True 
-                logging.debug('Getting new inputs...')
+                #logging.debug('Getting new inputs...')
                 
                 for i in range(5):
                     if(self.io_ctrls[self.knob_names[i]] != prev_knob[i]):
                         prev_knob[i] = self.io_ctrls[self.knob_names[i]]
-                        #io_ctrl_val_chg = True
 
                 for i in range(8):
                     if(self.io_ctrls[self.sw_names[i]] != prev_sw[i]):
                         prev_sw[i] = self.io_ctrls[self.sw_names[i]]
-                        #io_ctrl_val_chg = True
 
                 if(prev_mode != self.io_ctrls['cmd']):
                     prev_mode = self.io_ctrls['cmd']
-                    #io_ctrl_val_chg = True
 
                 if(prev_mode != self.io_ctrls['mode']):
                     prev_mode = self.io_ctrls['mode']
-                    #io_ctrl_val_chg = True
-            time.sleep(0.01)   
 
+            time.sleep(0.01)

@@ -61,11 +61,12 @@ class PlayerThread(threading.Thread):
                         #    pass
                         #if(True):
                         if(msg.type == 'note_on'):
+                            pass
                         #    role_vel = 'vel_' + self.chan_roles[msg.channel]
                         #    if(role_vel):
-                             logging.debug('chan' + str(msg.channel))
-                             logging.debug(ch_ro[msg.channel])
-                             logging.debug(str(self.plyr_ctrls[ch_ro[msg.channel]]))
+                             #logging.debug('chan' + str(msg.channel))
+                             #logging.debug(ch_ro[msg.channel])
+                             #logging.debug(str(self.plyr_ctrls[ch_ro[msg.channel]]))
                         #    logging.debug(msg.velocity)
                                 #if(sw_33 and msg.channel == knob1):
                                 #    msg.note += 7

@@ -41,7 +41,7 @@ void loop() {
       
       packKnobData();
       packSwData();
-      
+      packMsgByte(); 
       msg_ready = false;
       
       for(int i=0; i<=7; i++){
@@ -52,7 +52,6 @@ void loop() {
       if(sw_values[6])
           menus.dispTopMenu();
   }  
-  
 
   if(sw_values[8] && rot_enc_was_pressed == false){
       rot_enc_was_pressed = true;
