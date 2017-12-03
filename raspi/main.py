@@ -73,17 +73,11 @@ def main():
 
     while(thr_gui.isAlive() and thr_plyr.isAlive() and thr_iointf.isAlive()):
         if(gui_ctrls['val_chg'] or io_ctrls['val_chg']):
-            gui_ctrls['val_chg'] = False
-            io_ctrls['val_chg'] = False
 
             for key in main_ctrls:
                 main_ctrls[key] = gui_ctrls[key] or io_ctrls[key]
             
             plyr_ctrls['play'] = main_ctrls['play'] or io_ctrls['sw_right'] 
-            #plyr_ctrls['vel_perc'] = io_ctrls['knob0'] 
-            #logging.debug('io knob0 :' + str(io_ctrls['knob0']))
-            #logging.debug('plyr perc vel:' +  str(plyr_ctrls['vel_perc']))
-            #plyr_ctrls['generic'] = gui_ctrls['knob0'] 
             plyr_ctrls['generic'] = io_ctrls['knob0'] 
             #plyr_ctrls['poly'] = gui_ctrls['knob1'] 
             plyr_ctrls['poly'] = io_ctrls['knob1'] 
@@ -101,7 +95,10 @@ def main():
             plyr_ctrls['bass'] = io_ctrls['knob3']
             #plyr_ctrls['perc'] = main_ctrls['knob4']
             plyr_ctrls['perc'] = io_ctrls['knob4']
-            
+ 
+            gui_ctrls['val_chg'] = False
+            io_ctrls['val_chg'] = False
+
             if(gui_ctrls['cmd'] == 'NEWSONG'):
                 gui_ctrls['cmd'] = 'NONE'
                 #try:

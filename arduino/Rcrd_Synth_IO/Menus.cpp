@@ -157,7 +157,6 @@
 
     byte Menus::getMsgByte(){
       has_msg = false;
-      msg_byte = 0x08;
       return msg_byte;
     }
 

@@ -13,9 +13,9 @@
 #define BM_DEFAULT 0x00
 #define BM_ISO_CH  0x01
 //commands
-#define BM_NONE    0xC0
-#define BM_PWROFF  0xC1
-#define BM_DLSONG  0xC2
+#define BM_NONE    0xC0 // 12
+#define BM_PWROFF  0xC1 // 13
+#define BM_DLSONG  0xC2 // 14
 
 
 

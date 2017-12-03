@@ -51,6 +51,8 @@ class PlayerThread(threading.Thread):
     def run(self):
         while(not self.stoprequest.isSet()):
             while(self.plyr_ctrls['play'] == True and not self.stoprequest.isSet()):
+                #logging.debug('perc ' + str(self.plyr_ctrls['perc']))
+                #logging.debug('bass ' + str(self.plyr_ctrls['bass']))
                 was_playing = True
                 ch_ro = self.chan_roles
                 for msg in self.midifile.play():
@@ -61,13 +63,12 @@ class PlayerThread(threading.Thread):
                         #    pass
                         #if(True):
                         if(msg.type == 'note_on'):
-                            pass
-                        #    role_vel = 'vel_' + self.chan_roles[msg.channel]
-                        #    if(role_vel):
-                             #logging.debug('chan' + str(msg.channel))
-                             #logging.debug(ch_ro[msg.channel])
-                             #logging.debug(str(self.plyr_ctrls[ch_ro[msg.channel]]))
-                        #    logging.debug(msg.velocity)
+                            #logging.debug(str(self.plyr_ctrls[self.chan_roles[msg.channel]]))
+                            #if(role_vel):
+                                #logging.debug('chan ' + str(msg.channel))
+                                #logging.debug(ch_ro[msg.channel])
+                            msg.velocity = self.plyr_ctrls[ch_ro[msg.channel]]
+                            logging.debug(msg.velocity)
                                 #if(sw_33 and msg.channel == knob1):
                                 #    msg.note += 7
                                 #if(self.plyr_ctrls['mode'] == 'ISO_CH'):

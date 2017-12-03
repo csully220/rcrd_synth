@@ -37,6 +37,7 @@ class IoIntfThread(threading.Thread):
         try:
             tmp = self.ser.readline().strip()
             if(ord(tmp[0]) == 255):
+                rtn = True
                 self.io_ctrls['knob4'] = ord(tmp[1])
                 self.io_ctrls['knob3'] = ord(tmp[2])
                 self.io_ctrls['knob2'] = ord(tmp[3])
@@ -52,15 +53,16 @@ class IoIntfThread(threading.Thread):
                     else:
                         self.io_ctrls[self.sw_names[r]] = False
                 mb = ord(tmp[7])
-                if(mb < 20):
+                #logging.debug(str(mb))
+                if(mb < 192):
                     #logging.debug('msg byte is something')
                     self.io_ctrls['mode'] = self.modes[mb]
    
-                elif(mb >= 20):
-                    self.io_ctrls['cmd'] = self.commands[mb]
+                elif(mb >= 192):
+                    self.io_ctrls['cmd'] = self.commands[mb - 192]
                 #logging.debug(str(mb))
 
-                return True
+                return rtn 
         except:
             self.ser.reset_input_buffer()
             return False
@@ -79,7 +81,6 @@ class IoIntfThread(threading.Thread):
         while(not self.stoprequest.isSet()):
             if(self.unpack_serial()):
                 self.io_ctrls['val_chg'] = True 
-                #logging.debug('Getting new inputs...')
                 
                 for i in range(5):
                     if(self.io_ctrls[self.knob_names[i]] != prev_knob[i]):
