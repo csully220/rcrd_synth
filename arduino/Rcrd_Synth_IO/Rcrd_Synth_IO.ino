@@ -50,11 +50,11 @@ void loop() {
       Serial.print("\n");
   }  
 
-  if(sw_values[6] && menu_sel_debnce == false){
+  if(sw_values[8] && menu_sel_debnce == false){
       menu_sel_debnce = true;
       menus.select();
       delay(400);
-  } else if(sw_values[6] == 0){
+  } else if(sw_values[8] == 0){
       menu_sel_debnce = false;
   }
           

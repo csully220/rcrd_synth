@@ -45,8 +45,8 @@ private:
     char* sw_names[SWITCHES_NUM_ITEMS] = {"12", "7", "AUTO", "START", "33","78", "LEFT", "RIGHT", "ROT ENC", "PROGRAM"};
     char* knob_names[5] = {"KNOB1", "KNOB2", "KNOB3", "KNOB4", "KNOB5"};
     char* menu_items_top[TOP_NUM_ITEMS] = {"Switches", "Isolate Channel", "New Song", "Poweroff"};
-    char* menu_items_pwroff[PWROFF_NUM_ITEMS] = {"Confirm", "Cancel"};
-    char* menu_items_dlsong[DLSONG_NUM_ITEMS] = {"Get new song", "Cancel"};
+    char* menu_items_pwroff[PWROFF_NUM_ITEMS] = {"Confirm poweroff", "Cancel"};
+    char* menu_items_dlsong[DLSONG_NUM_ITEMS] = {"Confirm new song", "Cancel"};
     e_menu_titles current_menu;
 
     int checkBounds(int);
