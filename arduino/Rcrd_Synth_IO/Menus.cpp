@@ -125,8 +125,9 @@
             break;
           }
         case SWITCHES:
-          changeMenu(TOP);
+          //changeMenu(TOP);
           return;
+          break;
         case POWEROFF:
           if(index == 0){
             msg_byte = byte(BM_PWROFF);
@@ -134,6 +135,7 @@
           }
           else if(index == 1)
             changeMenu(TOP);
+          break;
         case DLSONG:
           if(index == 0){
             msg_byte = byte(BM_DLSONG);
@@ -142,7 +144,8 @@
           else if(index == 1){
             changeMenu(TOP);
           }
-       } 
+          break;
+       }
     }
     
     void Menus::changeMenu(e_menu_titles new_menu){
@@ -150,6 +153,7 @@
       index = 0;
       changeItem(0);
     }
+
     byte Menus::getMsgByte(){
       has_msg = false;
       msg_byte = 0x08;

@@ -8,7 +8,7 @@ int rot_enc_ctr = 0;
 int rot_enc_ctr_last = 0;
 int sw_val_last;
 bool msg_ready = false;
-bool rot_enc_was_pressed;
+bool menu_sel_debnce;
 
 void initInput();
 bool updateInput();
@@ -48,17 +48,14 @@ void loop() {
           Serial.write(output_buf[i]);
       }
       Serial.print("\n");
-      
-      if(sw_values[6])
-          menus.dispTopMenu();
   }  
 
-  if(sw_values[8] && rot_enc_was_pressed == false){
-      rot_enc_was_pressed = true;
+  if(sw_values[6] && menu_sel_debnce == false){
+      menu_sel_debnce = true;
       menus.select();
       delay(400);
-  } else {
-      rot_enc_was_pressed = false;
+  } else if(sw_values[6] == 0){
+      menu_sel_debnce = false;
   }
           
   if(rot_enc_ctr < rot_enc_ctr_last){

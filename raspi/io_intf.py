@@ -13,13 +13,13 @@ class IoIntfThread(threading.Thread):
 
     sw_names = ['sw_right', 'sw_left', 'sw_78', 'sw_33', 'sw_start', 'sw_auto', 'sw_7', 'sw_12']
     knob_names = ['knob0', 'knob1', 'knob2', 'knob3', 'knob4']
+    modes = ['DEFAULT', 'ISOL_CH']
+    commands = ['NONE', 'PWROFF', 'NEWSONG']
 
     def __init__(self, _io_ctrls):
         super(IoIntfThread, self).__init__()
         self.name = 'IoIntf'
         self.ser = serial.Serial('/dev/ttyACM0', 9600)
-        self.modes = {b'\x00':'DEFAULT', b'\x01':'ISOL_CH'}
-        self.commands = {b'\xC0':'NONE', b'\xC1':'PWROFF', b'\xC2':'NEWSONG'}
         self.stoprequest = threading.Event()
         self.io_ctrls = _io_ctrls
 
@@ -29,10 +29,12 @@ class IoIntfThread(threading.Thread):
     def join(self, timeout=None):
         logging.debug('Goodbye IO thread!')
         self.stoprequest.set()
+        time.sleep(10)
+        self.close_port()
         super(IoIntfThread, self).join(timeout)
 
     def unpack_serial(self):
-        #try:
+        try:
             tmp = self.ser.readline().strip()
             if(ord(tmp[0]) == 255):
                 self.io_ctrls['knob4'] = ord(tmp[1])
@@ -50,21 +52,18 @@ class IoIntfThread(threading.Thread):
                     else:
                         self.io_ctrls[self.sw_names[r]] = False
                 mb = ord(tmp[7])
-                logging.debug(str(mb))
-                if(mb):
-                    logging.debug('msg byte is something')
-                    logging.debug(str(mb))
-                    self.io_ctrls['mode'] = str(mb)
+                if(mb < 20):
+                    #logging.debug('msg byte is something')
+                    self.io_ctrls['mode'] = self.modes[mb]
    
-                #if(tmp[7] >= b'\xC0'):
-                #    self.io_ctrls['cmd'] = self.commands[tmp[7]]
-                #if(tmp[7] < b'\xC0'):
-                #    self.io_ctrls['mode'] = self.modes[tmp[7]]
+                elif(mb >= 20):
+                    self.io_ctrls['cmd'] = self.commands[mb]
+                #logging.debug(str(mb))
+
                 return True
-        #except:
-            else:
-                self.ser.reset_input_buffer()
-                return False
+        except:
+            self.ser.reset_input_buffer()
+            return False
 
     def close_port(self):
         try:

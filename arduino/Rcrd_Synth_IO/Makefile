@@ -1,6 +1,8 @@
 ARDUINO_DIR  = /usr/share/arduino
+#ARDUINO_DIR  = $(HOME)/rcrd_synth/arduino/Rcrd_Synth_IO
 
 ARDMK_DIR = /usr/share/arduino
+#ARDMK_DIR = ~/rcrd_synth/arduino/Rcrd_Synth_IO
 
 PROJECT_DIR = $(HOME)/rcrd_synth/arduino/Rcrd_Synth_IO
 
@@ -26,3 +28,4 @@ ALTERNATE_CORE_PATH = /usr/share/arduino/hardware/arduino
 #BOOTLOADER_PARENT = /usr/share/arduino/hardware/arduino/bootloaders
 
 include /usr/share/arduino/Arduino.mk
+#include $(HOME)/rcrd_synth/arduino/Rcrd_Synth_IO/Arduino.mk
