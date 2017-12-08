@@ -63,23 +63,7 @@ class PlayerThread(threading.Thread):
                         #    pass
                         #if(True):
                         if(msg.type == 'note_on'):
-                            #logging.debug(str(self.plyr_ctrls[self.chan_roles[msg.channel]]))
-                            #if(role_vel):
-                                #logging.debug('chan ' + str(msg.channel))
-                                #logging.debug(ch_ro[msg.channel])
                             msg.velocity = self.plyr_ctrls[ch_ro[msg.channel]]
-                            logging.debug(msg.velocity)
-                                #if(sw_33 and msg.channel == knob1):
-                                #    msg.note += 7
-                                #if(self.plyr_ctrls['mode'] == 'ISO_CH'):
-                                #    if(msg.channel != knob0):
-                                #        msg.velocity = 0
-                                #if(sw_12):
-                                    #if(msg.channel == 9):
-                                        #msg.velocity = 0
-                                #if(sw_7):
-                                #    if(msg.channel == 9):
-                                #        msg.velocity = 127
 ############# SEND MIDI MESSAGE #######################################
                         self.outport.send(msg)
                     else:

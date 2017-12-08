@@ -9,16 +9,6 @@
 #define PWROFF_NUM_ITEMS 2
 #define DLSONG_NUM_ITEMS 2
 
-//Modes
-#define BM_DEFAULT 0x00
-#define BM_ISO_CH  0x01
-//commands
-#define BM_NONE    0xC0 // 12
-#define BM_PWROFF  0xC1 // 13
-#define BM_DLSONG  0xC2 // 14
-
-
-
 class Menus
 {
 

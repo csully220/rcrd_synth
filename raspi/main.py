@@ -40,7 +40,7 @@ gui_ctrls = {'knob0':0, 'knob1':0,'knob2':0,'knob3':0,'knob4':0, 'sw_12':0, 'sw_
 
 main_ctrls = {'knob0':0, 'knob1':0,'knob2':0,'knob3':0,'knob4':0, 'sw_12':0, 'sw_7':0,'sw_auto':0,'sw_start':0,'sw_33':0,'sw_78':0,'sw_left':0,'sw_right':0, 'songfile':'warriorcatssong.mid', 'mode':'DEFAULT', 'cmd':'NONE', 'play':False, 'val_chg':False}
 
-plyr_ctrls = {'play':False, 'perc':30, 'generic':30,'poly':30, 'upr_ld':30, 'lwr_ld':30, 'mov_ld':30, 'str_ld':30, 'chords':30, 'bass':30, 'songfile':'warriorcatssong.mid'}
+plyr_ctrls = {'play':False, 'perc':80, 'generic':80,'poly':80, 'upr_ld':80, 'lwr_ld':80, 'mov_ld':80, 'str_ld':80, 'chords':80, 'bass':80, 'val_chg':False, 'songfile':'warriorcatssong.mid'}
 
 ################################################### INITIALIZE ############################
 
@@ -74,13 +74,14 @@ def main():
     while(thr_gui.isAlive() and thr_plyr.isAlive() and thr_iointf.isAlive()):
         if(gui_ctrls['val_chg'] or io_ctrls['val_chg']):
 
+            plyr_ctrls['val_chg'] = main_ctrls['val_chg'] or io_ctrls['val_chg'] 
             for key in main_ctrls:
                 main_ctrls[key] = gui_ctrls[key] or io_ctrls[key]
             
             plyr_ctrls['play'] = main_ctrls['play'] or io_ctrls['sw_right'] 
             plyr_ctrls['generic'] = io_ctrls['knob0'] 
             #plyr_ctrls['poly'] = gui_ctrls['knob1'] 
-            plyr_ctrls['poly'] = io_ctrls['knob1'] 
+            plyr_ctrls['poly'] = io_ctrls['knob0'] 
             #plyr_ctrls['upr_ld'] = gui_ctrls['knob1']
             plyr_ctrls['upr_ld'] = io_ctrls['knob1']
             #plyr_ctrls['lwr_ld'] = gui_ctrls['knob1']
@@ -88,20 +89,21 @@ def main():
             #plyr_ctrls['mov_ld'] = gui_ctrls['knob1']
             plyr_ctrls['mov_ld'] = io_ctrls['knob1']
             #plyr_ctrls['str_ld'] = gui_ctrls['knob1']
-            plyr_ctrls['str_ld'] = io_ctrls['knob1']
+            plyr_ctrls['str_ld'] = io_ctrls['knob2']
             #plyr_ctrls['chords'] = gui_ctrls['knob2']
             plyr_ctrls['chords'] = io_ctrls['knob2']
             #plyr_ctrls['bass'] = gui_ctrls['knob3']
             plyr_ctrls['bass'] = io_ctrls['knob3']
             #plyr_ctrls['perc'] = main_ctrls['knob4']
             plyr_ctrls['perc'] = io_ctrls['knob4']
+            plyr_ctrls['perc'] = io_ctrls['knob4']
  
             gui_ctrls['val_chg'] = False
             io_ctrls['val_chg'] = False
+            plyr_ctrls['val_chg'] = False
 
             if(gui_ctrls['cmd'] == 'NEWSONG'):
                 gui_ctrls['cmd'] = 'NONE'
-                #try:
                 filename = wt.get_by_genre()
                 logging.debug('New song: ' + filename)
                 #logging.debug('AFTER RETREIVAL ********** NKM-G-' + wt._nkm_encoded_id())
@@ -124,19 +126,12 @@ def main():
                 else:
                     logging.debug('songfile not in saved')
 
-            #lock.acquire()
-            #try:
-                #thr_plyr.ctrls.values() = thr_gui.ctrls.values() 
-            #finally:
-                #lock.release()
-
         time.sleep(0.05)
 
     if(thr_plyr.isAlive()):
         thr_plyr.stoprequest.set()
     if(thr_gui.isAlive()):
         thr_gui.stoprequest.set()
-    #if(env == 'record_synth' and thr_iointf.isAlive()):
     if(thr_iointf.isAlive()):
         thr_iointf.stoprequest.set()
     quit()

@@ -5,10 +5,15 @@ import logging
 
 class IoIntfThread(threading.Thread):
 
-#define NONE   0x00
-#define ISO_CHNL 0x02
-#define NEWSONG 0x03
-#define POWEROFF 0xFE
+    #MODES
+    #define MSG_DEFAULT 0x00 // 1
+    #define MSG_ISO_CH  0x01 // 2
+
+    #COMMANDS
+    #define MSG_NONE    0xC0 // 192
+    #define MSG_PWROFF  0xC1 // 193
+    #define MSG_DLSONG  0xC2 // 194
+
     global io_ctrls
 
     sw_names = ['sw_right', 'sw_left', 'sw_78', 'sw_33', 'sw_start', 'sw_auto', 'sw_7', 'sw_12']
@@ -60,7 +65,7 @@ class IoIntfThread(threading.Thread):
    
                 elif(mb >= 192):
                     self.io_ctrls['cmd'] = self.commands[mb - 192]
-                #logging.debug(str(mb))
+                logging.debug(str(mb))
 
                 return rtn 
         except:

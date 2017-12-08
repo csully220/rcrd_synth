@@ -1,9 +1,17 @@
 #include "Menus.h"
 
+    //Modes
+    #define MSG_DEFAULT 0x00 // 1
+    #define MSG_ISO_CH  0x01 // 2
+    //commands
+    #define MSG_NONE    0xC0 // 192
+    #define MSG_PWROFF  0xC1 // 193
+    #define MSG_DLSONG  0xC2 // 194
+
     Menus::Menus(SerLCD& ser_lcd, LiquidCrystal_I2C& i2c_lcd): red_lcd(ser_lcd), blue_lcd(i2c_lcd){
       current_menu = TOP;
       has_msg = false;
-      msg_byte = BM_NONE; 
+      msg_byte = MSG_NONE; 
     }
     
     void Menus::initRed(){
@@ -112,12 +120,12 @@
               changeMenu(SWITCHES);
             break;
             case 1: //isolate channel
-              msg_byte = byte(BM_ISO_CH);
+              msg_byte = byte(MSG_ISO_CH);
               has_msg = true;
             break;
             case 2: //new song
               changeMenu(DLSONG);
-              msg_byte = byte(BM_DLSONG); 
+              msg_byte = byte(MSG_DLSONG); 
               has_msg = true;
             break;
             case 3: //poweroff
@@ -130,7 +138,7 @@
         break;
         case POWEROFF:
           if(index == 0){
-            msg_byte = byte(BM_PWROFF);
+            msg_byte = byte(MSG_PWROFF);
             has_msg = true;
           }
           else if(index == 1){
@@ -139,7 +147,7 @@
         break;
         case DLSONG:
           if(index == 0){
-            msg_byte = byte(BM_DLSONG);
+            msg_byte = byte(MSG_DLSONG);
             has_msg = true;
           }
           else if(index == 1){
@@ -157,7 +165,9 @@
 
     byte Menus::getMsgByte(){
       has_msg = false;
-      return msg_byte;
+      byte rtn = msg_byte;
+      msg_byte = MSG_DEFAULT;
+      return rtn;
     }
 
     void Menus::dispTopMenu(){

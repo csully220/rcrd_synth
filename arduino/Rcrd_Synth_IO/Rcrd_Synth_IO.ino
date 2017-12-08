@@ -38,16 +38,13 @@ void loop() {
   if(updateInput() || msg_ready == true){
   
       menus.dispKnobVals(knob_values);
-      
       packKnobData();
       packSwData();
-      packMsgByte(); 
-      msg_ready = false;
-      
       for(int i=0; i<=7; i++){
           Serial.write(output_buf[i]);
       }
       Serial.print("\n");
+      msg_ready = false;
   }  
 
   if(sw_values[8] && menu_sel_debnce == false){
