@@ -1,5 +1,5 @@
 
-class WolfTonesValidate():
+class Validator():
     def __init__(self):
         self.valid_genres = {'Classical':'15',
                         'Piano':'10',
@@ -169,25 +169,24 @@ class WolfTonesValidate():
                            
     def get_role(self, role = None):
         role_grp = None
-        if(role):
-            if role in self.roles_generic:
-                 role_grp = 'generic'
-            elif role in self.roles_polyphonic:
-                 role_grp = 'poly' #polyphonic
-            elif role in self.roles_upper_lead:
-                 role_grp = 'upr_ld' #upper_lead
-            elif role in self.roles_lower_lead:
-                 role_grp = 'lwr_ld' #lower_lead
-            elif role in self.roles_moving_lead:
-                 role_grp = 'mov_ld' #moving_lead 
-            elif role in self.roles_straight_lead:
-                 role_grp = 'str_ld' #straight_lead
-            elif role in self.roles_chords:
-                 role_grp = 'chords' #chords
-            elif role in self.roles_bass:
-                 role_grp = 'bass' #bass
-            elif role == 0:
-                 role_grp = 'perc' #bass
+        if role in self.roles_generic:
+             role_grp = 'generic'
+        elif role in self.roles_polyphonic:
+             role_grp = 'poly' #polyphonic
+        elif role in self.roles_upper_lead:
+             role_grp = 'upr_ld' #upper_lead
+        elif role in self.roles_lower_lead:
+             role_grp = 'lwr_ld' #lower_lead
+        elif role in self.roles_moving_lead:
+             role_grp = 'mov_ld' #moving_lead 
+        elif role in self.roles_straight_lead:
+             role_grp = 'str_ld' #straight_lead
+        elif role in self.roles_chords:
+             role_grp = 'chords' #chords
+        elif role in self.roles_bass:
+             role_grp = 'bass' #bass
+        elif not role:
+             role_grp = 'perc' #bass
         return role_grp
 
 

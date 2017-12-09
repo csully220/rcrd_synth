@@ -38,7 +38,7 @@ class PlayerThread(threading.Thread):
             #self.stop()
             self.midifile = MidiFile(filepath)
             self.plyr_ctrls['songfile'] = filepath
-            #logging.debug(str(self.midifile.tracks))
+            logging.debug(str(self.midifile.tracks))
             self.songfile = filepath
             for trk in self.midifile.tracks:
                 s = trk.name.split(':')

@@ -2,17 +2,15 @@ import collections
 import requests
 import random
 import logging
-from wolftones_validate import WolfTonesValidate
+from validator import Validator
 import mido
 from mido import MidiFile
 import datetime
 
-class WolfTones:
+class WolfTonesSong:
     
     dl_url = 'https://www.wolframcloud.com/objects/user-a13d29f3-43bf-4b00-8e9b-e55639ecde19/NKMMusicDownload?id='
     genre_url = 'https://www.wolframcloud.com/objects/user-a13d29f3-43bf-4b00-8e9b-e55639ecde19/NKMNewID?genre=' 
-    song_save_path = '/home/pi/rcrd_synth/raspi/songs/save/'
-    song_temp_path = '/home/pi/rcrd_synth/raspi/songs/temp/'
 
     #hip hop, dance, blues, experimental
     #fav_genres = [45,40,55,90]
@@ -20,8 +18,13 @@ class WolfTones:
     wildcard_inst = [76, 114, 118]
     fav_genres = ['25', '45','40','55','60'] # ambient,hip hop, dance, blues, R&B
 
-    def __init__(self):
-        self.vld = WolfTonesValidate()
+    def __init__(self, _save_path, _temp_path):
+        self.save_path = _save_path
+        self.temp_path = _temp_path
+        self.key = 60
+        self.scale = []
+        self.vld = Validator()
+
         self.params = collections.OrderedDict( [
             ('genre','45'),   
             ('rule_type','15'),
@@ -89,25 +92,29 @@ class WolfTones:
             return None
         
         fn = self.write_file(r.content)
-        self.add_track_info(fn)
+        self.analyze(fn)
         return fn 
 
-    def add_track_info(self, filename):
+    def analyze(self, filename):
         #logging.debug('adding track info')
         md = MidiFile(filename)
+        self.key = self.params['pitch']
+        sc_prm = self.params['scale']
+        self.scale = self.vld.scales_notes[sc_prm]
+        logging.debug(self.scale)
         i = 0
         for trk in md.tracks:
             i += 1
             #logging.debug('PARSING NEW TRACK '+ str(i))
             for msg in trk:
                 try:
-                    if msg.type == 'program_change':
+                    if(msg.type == 'program_change'):
                         inst = msg.program
                         chan = int(msg.channel)
                         role = None 
                         inst += 1
-                        #logging.debug('inst: ' + str(inst))
-                        #logging.debug('chan: ' + str(chan))
+                        logging.debug('inst: ' + str(inst))
+                        logging.debug('chan: ' + str(chan))
                         if inst == int(self.params['inst_1']):
                             role_enc = int(self.params['role_1'])
                         if inst == int(self.params['inst_2']):
@@ -121,8 +128,9 @@ class WolfTones:
                         
                         #try:
                             #logging.debug('getting role')
-                        role = self.vld.get_role(role_enc)
-                        if(chan == 9 or inst == 1):
+                        if(chan is not 9):
+                            role = self.vld.get_role(role_enc)
+                        else:
                             role = 'perc'
                         trk.name = str(chan) + ':' + role
                         #logging.debug('Added channel  ' + trk.name)
@@ -131,7 +139,7 @@ class WolfTones:
                         break
                 except:
                     pass        
-        #logging.debug('inst1: ' + self.params['inst_1'])
+       #logging.debug('inst1: ' + self.params['inst_1'])
        # logging.debug('role1: ' + self.params['role_1'])
        # logging.debug('inst2: ' + self.params['inst_2'])
        # logging.debug('role2: ' + self.params['role_2'])
@@ -157,10 +165,10 @@ class WolfTones:
             fn += self.song_save_path
         if(temp):
         #save in the temp song folder
-            fn = self.song_temp_path + fn
+            fn = self.temp_path + fn
         else:
         #save in the permanent folder
-            fn = self.song_save_path + fn 
+            fn = self.save_path + fn 
         if(content):
             with open(fn, 'w+') as f:
                 f.write(content)
@@ -181,7 +189,7 @@ class WolfTones:
         fn = filename.split('.')
         enc_id = fn[0]
         self.set_params_by_id(enc_id)
-        self.add_track_info(filename)
+        self.analyze(filename)
  
 
 #obj_params = collections.OrderedDict( [ ('genre','45'), ('rule_type','15'), ('rule','10'), ('cyc_bdry','1'), ('seed','34444'), ('duration','21'), ('bpm','130'), ('npb','4'), ('scale','2050'), ('pitch','44'), ('mystery','0'), ('inst_1','31'), ('role_1','10'), ('inst_2','95'), ('role_2','135'), ('inst_3','0'), ('role_3','0'), ('inst_4','0'), ('role_4','0'), ('inst_5','0'), ('role_5','0'), ('perc','711') ] )

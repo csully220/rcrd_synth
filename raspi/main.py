@@ -9,7 +9,7 @@ import socket
 import Queue
 
 import wolftones
-from wolftones import WolfTones
+from wolftones import WolfTonesSong
 
 import io_intf 
 from io_intf import IoIntfThread 
@@ -29,7 +29,7 @@ song_save_path = '/home/pi/rcrd_synth/raspi/songs/save/'
 song_temp_path = '/home/pi/rcrd_synth/raspi/songs/temp/'
 
 #default_songfile = song_save_path + 'warriorcatssong.mid'
-default_songfile = song_temp_path + '25-31-149244754-1-16087-58-58-4-2709-51-0-5-102-36-502-54-203-0-0-5-122-0.mid'
+default_songfile = song_save_path + 'default.mid'
 
 
 valid_cmd_names = ['NONE', 'ISO_CHNL', 'NEWSONG', 'POWEROFF']
@@ -67,9 +67,11 @@ def main():
         thr_iointf.setDaemon(True)
         thr_iointf.start()
     
-    wt = WolfTones()
-    wt.load_file(default_songfile)
-    thr_plyr.load_song(default_songfile)
+    wt = WolfTonesSong(song_save_path, song_temp_path)
+    filename = wt.get_by_genre()
+    #wt.load_file(default_songfile)
+    thr_plyr.load_song(filename)
+    #thr_plyr.load_song(default_songfile)
 
     while(thr_gui.isAlive() and thr_plyr.isAlive() and thr_iointf.isAlive()):
         if(gui_ctrls['val_chg'] or io_ctrls['val_chg']):
