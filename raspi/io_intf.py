@@ -65,7 +65,7 @@ class IoIntfThread(threading.Thread):
    
                 elif(mb >= 192):
                     self.io_ctrls['cmd'] = self.commands[mb - 192]
-                logging.debug(str(mb))
+                #logging.debug(str(mb))
 
                 return rtn 
         except:

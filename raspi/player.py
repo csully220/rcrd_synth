@@ -40,6 +40,8 @@ class PlayerThread(threading.Thread):
             self.plyr_ctrls['songfile'] = filepath
             logging.debug(str(self.midifile.tracks))
             self.songfile = filepath
+            # length of a quarter note
+            self.ticks_per_beat = self.midifile.ticks_per_beat
             for trk in self.midifile.tracks:
                 s = trk.name.split(':')
                 chan = s[0]
@@ -57,17 +59,37 @@ class PlayerThread(threading.Thread):
                 ch_ro = self.chan_roles
                 for msg in self.midifile.play():
                     if(self.plyr_ctrls['play'] == True and not self.stoprequest.isSet()):
-#-------------- MODIFY MIDI MESSAGES ON THE FLY  ------------------------
+     #-------------- MODIFY MIDI MESSAGES ON THE FLY  ------------------------
                         # Here do things that only happen once when a value changes
                         #if(self.plyr_ctrls['val_chg'] == True):
                         #    pass
                         #if(True):
-                        if(msg.type == 'note_on'):
-                            msg.velocity = self.plyr_ctrls[ch_ro[msg.channel]]
-############# SEND MIDI MESSAGE #######################################
+                        #if(plyr_ctrls['drum_fill']):
+                            
+                        if(msg.type == 'note_on' and msg.velocity):
+                            
+                            ctrl_vel = self.plyr_ctrls[ch_ro[msg.channel]]
+                            #logging.debug('ctrl_vel ' + str(ctrl_vel))
+                            msg_vel = msg.velocity
+                            msg.velocity = self.get_scaled_velocity(msg_vel, ctrl_vel) 
+                            #msg_vel = self.get_scaled_velocity(msg_vel, ctrl_vel) 
+                            #logging.debug('msg_vel ' + str(msg_vel))
+                            #msg.velocity = self.plyr_ctrls[ch_ro[msg.channel]]
+     ############ SEND MIDI MESSAGE #######################################
                         self.outport.send(msg)
                     else:
                         if(was_playing == True):
                             self.outport.reset()
                             was_playing = False
                         break
+
+    def get_scaled_velocity(self, msg_vel, ctrl_vel):
+        ctrl_vel_ratio = float(ctrl_vel)/127
+        #logging.debug('msg_vel ' +  str(msg_vel))
+        #logging.debug('ratio ' +  str(ctrl_vel_ratio))
+        if(ctrl_vel_ratio > 0.5):
+             rtn_vel = msg_vel + ((127 - msg_vel)*((ctrl_vel/64)-1))
+        elif(ctrl_vel_ratio <= 0.5):
+             rtn_vel = ctrl_vel_ratio * msg_vel * 2
+        #logging.debug('rtn_vel ' +  str(rtn_vel))
+        return int(rtn_vel)

@@ -126,20 +126,15 @@ class WolfTonesSong:
                         if inst == int(self.params['inst_5']):
                             role_enc = int(self.params['role_5'])
                         
-                        #try:
-                            #logging.debug('getting role')
                         if(chan is not 9):
                             role = self.vld.get_role(role_enc)
                         else:
                             role = 'perc'
                         trk.name = str(chan) + ':' + role
-                        #logging.debug('Added channel  ' + trk.name)
-                        #except:
-                        #    trk.name = 'Fail'
                         break
                 except:
                     pass        
-       #logging.debug('inst1: ' + self.params['inst_1'])
+       # logging.debug('inst1: ' + self.params['inst_1'])
        # logging.debug('role1: ' + self.params['role_1'])
        # logging.debug('inst2: ' + self.params['inst_2'])
        # logging.debug('role2: ' + self.params['role_2'])
