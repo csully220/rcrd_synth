@@ -102,9 +102,7 @@ class WolfTonesSong:
         sc_prm = self.params['scale']
         self.scale = self.vld.scales_notes[sc_prm]
         logging.debug(self.scale)
-        i = 0
         for trk in md.tracks:
-            i += 1
             #logging.debug('PARSING NEW TRACK '+ str(i))
             for msg in trk:
                 try:

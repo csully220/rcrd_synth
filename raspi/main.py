@@ -102,15 +102,30 @@ def main():
                 main_ctrls[key] = gui_ctrls[key] or io_ctrls[key]
             
             plyr_ctrls['play']    = main_ctrls['play'] or io_ctrls['sw_right'] 
-            plyr_ctrls['perc']    = io_ctrls['knob0']
-            plyr_ctrls['generic'] = io_ctrls['knob1'] 
-            plyr_ctrls['poly']    = io_ctrls['knob1'] 
-            plyr_ctrls['upr_ld']  = io_ctrls['knob2']
-            plyr_ctrls['lwr_ld']  = io_ctrls['knob2']
-            plyr_ctrls['mov_ld']  = io_ctrls['knob2']
-            plyr_ctrls['str_ld']  = io_ctrls['knob2']
-            plyr_ctrls['chords']  = io_ctrls['knob3']
-            plyr_ctrls['bass']    = io_ctrls['knob4']
+ 
+            if(main_ctrls['sw_start']):
+                plyr_ctrls['perc']    = io_ctrls['knob0']
+                plyr_ctrls['generic'] = io_ctrls['knob1'] 
+                plyr_ctrls['poly']    = io_ctrls['knob1'] 
+                plyr_ctrls['upr_ld']  = io_ctrls['knob2']
+                plyr_ctrls['lwr_ld']  = io_ctrls['knob2']
+                plyr_ctrls['mov_ld']  = io_ctrls['knob2']
+                plyr_ctrls['str_ld']  = io_ctrls['knob2']
+                plyr_ctrls['chords']  = io_ctrls['knob3']
+                plyr_ctrls['bass']    = io_ctrls['knob4']
+                vel_src_custom = True
+                        
+            elif( not (main_ctrls['sw_start'] or main_ctrls['sw_auto']) ):
+                plyr_ctrls['perc']    = 64
+                plyr_ctrls['generic'] = 64 
+                plyr_ctrls['poly']    = 64
+                plyr_ctrls['upr_ld']  = 64
+                plyr_ctrls['lwr_ld']  = 64
+                plyr_ctrls['mov_ld']  = 64
+                plyr_ctrls['str_ld']  = 64
+                plyr_ctrls['chords']  = 64
+                plyr_ctrls['bass']    = 64
+            
 
             plyr_ctrls['drum_fill'] = io_ctrls['sw_33']
 
@@ -133,8 +148,8 @@ def main():
                 songfiles = [f for f in listdir(song_save_path) if isfile(join(song_save_path, f))]
                 if(gui_ctrls['songfile'] in songfiles):
                     wt.load_file(default_songfile)
-                    plyr_ctrls['key'] = wt.key
-                    plyr_ctrls['scale'] = wt.scale
+                    #plyr_ctrls['key'] = wt.key
+                    #plyr_ctrls['scale'] = wt.scale
                     tmp = song_save_path + gui_ctrls['songfile']
                     thr_plyr.load_song(tmp)
                 else:
