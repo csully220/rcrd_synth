@@ -5,10 +5,6 @@ import time
 import threading
 from threading import Lock
 import logging
-import socket
-
-import wolftones
-from wolftones import WolfTonesSong
 
 import io_intf 
 from io_intf import IoIntfThread 
@@ -24,11 +20,11 @@ from os.path import isfile, join
 LOG_FILENAME = 'log'
 logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG, filemode='w', format='(%(threadName)-10s) %(message)s')
 
-song_save_path = '/home/pi/rcrd_synth/raspi/songs/save/'
+song_save_path = '/home/pi/rcrd_synth/raspi/songs/'
 song_temp_path = '/home/pi/rcrd_synth/raspi/songs/temp/'
 
 #default_songfile = song_save_path + 'warriorcatssong.mid'
-default_songfile = song_save_path + 'default.mid'
+default_songfile = '45-31-720839978-1-53124-92-92-4-3546-42-0-36-543-13-140-36-513-6-308-0-0-457.mid'
 
 
 valid_cmd_names = ['NONE', 'ISO_CHNL', 'NEWSONG', 'POWEROFF']
@@ -67,10 +63,11 @@ def main():
     global gui_ctrls
     global plyr_ctrls
 
-    #intialization
-    env = socket.gethostname()
+    env = 'record_synth'
     
-    thr_plyr = PlayerThread(env, default_songfile, plyr_ctrls)
+    #intialization
+    
+    thr_plyr = PlayerThread(song_temp_path, default_songfile, plyr_ctrls)
     thr_plyr.setDaemon(True)
     thr_plyr.start()
     
@@ -83,15 +80,8 @@ def main():
         thr_iointf.setDaemon(True)
         thr_iointf.start()
     
-    wt = WolfTonesSong(song_save_path, song_temp_path)
-    wt.load_file(default_songfile)
     thr_plyr.load_song(default_songfile)
 
-    #filename = wt.get_by_genre()
-    #thr_plyr.load_song(filename)
-
-    plyr_ctrls['key'] = wt.key
-    plyr_ctrls['scale'] = wt.scale
 
     while(thr_gui.isAlive() and thr_plyr.isAlive() and thr_iointf.isAlive()):
         if(gui_ctrls['val_chg'] or io_ctrls['val_chg']):
@@ -135,22 +125,15 @@ def main():
 
             if(gui_ctrls['cmd'] == 'NEWSONG'):
                 gui_ctrls['cmd'] = 'NONE'
-                filename = wt.get_by_genre()
-                logging.debug('New song: ' + filename)
-                #logging.debug('AFTER RETREIVAL ********** NKM-G-' + wt._nkm_encoded_id())
-                plyr_ctrls['key'] = wt.key
-                plyr_ctrls['scale'] = wt.scale
-                thr_plyr.load_song(filename)
+                thr_plyr.new_song()
 
             if(gui_ctrls['cmd'] == 'LOADSONG'):
                 gui_ctrls['cmd'] = 'NONE'
                 logging.debug('loading saved song ' + gui_ctrls['songfile'])
                 songfiles = [f for f in listdir(song_save_path) if isfile(join(song_save_path, f))]
                 if(gui_ctrls['songfile'] in songfiles):
-                    wt.load_file(default_songfile)
                     #plyr_ctrls['key'] = wt.key
                     #plyr_ctrls['scale'] = wt.scale
-                    tmp = song_save_path + gui_ctrls['songfile']
                     thr_plyr.load_song(tmp)
                 else:
                     logging.debug('songfile not in saved')

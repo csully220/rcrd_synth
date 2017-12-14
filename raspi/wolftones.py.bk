@@ -18,7 +18,9 @@ class WolfTonesSong:
     wildcard_inst = [76, 114, 118]
     fav_genres = ['25', '45','40','55','60'] # ambient,hip hop, dance, blues, R&B
 
-    def __init__(self):
+    def __init__(self, _save_path, _temp_path):
+        self.save_path = _save_path
+        self.temp_path = _temp_path
         self.key = 60
         self.scale = []
         self.vld = Validator()
@@ -73,11 +75,12 @@ class WolfTonesSong:
         r = requests.get(self.dl_url + nkm_id + '&form=MIDI')
         return r
  
-    def get_by_genre(self, save_path='', genre=None):
+    def get_by_genre(self, genre=None, save_path):
         if(genre == None):
             rg = random.choice(self.fav_genres)
         else:
             rg = str(genre)
+        #logging.debug('random fav genre - ' + rg)
         url = self.genre_url + rg
         try:
             r = requests.get(url)
@@ -89,7 +92,6 @@ class WolfTonesSong:
             return None
        
         fn = self.write_file(r.content, save_path)
-        logging.debug('filename  after: '+ fn)
         self.analyze(fn)
         return fn 
 
@@ -98,10 +100,7 @@ class WolfTonesSong:
         md = MidiFile(filename)
         self.key = self.params['pitch']
         sc_prm = self.params['scale']
-        if(sc_prm in self.vld.scales_notes):
-            self.scale = self.vld.scales_notes[sc_prm]
-        else:
-            self.scale = [0]
+        self.scale = self.vld.scales_notes[sc_prm]
         logging.debug(self.scale)
         for trk in md.tracks:
             #logging.debug('PARSING NEW TRACK '+ str(i))
@@ -133,18 +132,35 @@ class WolfTonesSong:
                         break
                 except:
                     pass        
+       # logging.debug('inst1: ' + self.params['inst_1'])
+       # logging.debug('role1: ' + self.params['role_1'])
+       # logging.debug('inst2: ' + self.params['inst_2'])
+       # logging.debug('role2: ' + self.params['role_2'])
+       # logging.debug('inst3: ' + self.params['inst_3'])
+       # logging.debug('role3: ' + self.params['role_3'])
+       # logging.debug('inst4: ' + self.params['inst_4'])
+       # logging.debug('role4: ' + self.params['role_4'])
+       # logging.debug('inst5: ' + self.params['inst_5'])
+       # logging.debug('role5: ' + self.params['role_5'])
         md.save(filename)
         
     def write_file(self, content, save_path):
-        #fn = 'dl_song-{:%m-%d-%H:%M}'.format(datetime.datetime.now()) + '.mid'
-        fn = self._nkm_encoded_id() + '.mid'
-        #here we strip out any path elements, keeping only the filename so we only write in the saved song directory
-        fn = save_path + fn 
-        if(content):
-            with open(fn, 'w+') as f:
-                f.write(content)
-                logging.debug('filename before: '+ fn)
-        return fn
+        filename = None
+        temp = True
+        if(not filename):
+            #fn = 'dl_song-{:%m-%d-%H:%M}'.format(datetime.datetime.now()) + '.mid'
+            fn = self._nkm_encoded_id() + '.mid'
+        else:
+            #here we strip out any path elements, keeping only the filename so we only write in the saved song directory
+            fn = filename.split('/')
+            fn = fn[-1]
+            fn = fn[0]
+            fn += self.song_save_path
+            fn = self.save_path + fn 
+            if(content):
+                with open(fn, 'w+') as f:
+                    f.write(content)
+                return fn
  
     def set_params_by_id(self, enc_id):
         toks = enc_id.split('-')
