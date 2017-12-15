@@ -24,7 +24,7 @@ song_save_path = '/home/pi/rcrd_synth/raspi/songs/'
 song_temp_path = '/home/pi/rcrd_synth/raspi/songs/temp/'
 
 #default_songfile = song_save_path + 'warriorcatssong.mid'
-default_songfile = '45-31-720839978-1-53124-92-92-4-3546-42-0-36-543-13-140-36-513-6-308-0-0-457.mid'
+default_songfile = '45-157-2288813850-0-48504-96-96-4-2419-44-0-35-542-35-513-28-141-0-0-103-128-455.mid'
 
 
 valid_cmd_names = ['NONE', 'ISO_CHNL', 'NEWSONG', 'POWEROFF']
@@ -130,11 +130,11 @@ def main():
             if(gui_ctrls['cmd'] == 'LOADSONG'):
                 gui_ctrls['cmd'] = 'NONE'
                 logging.debug('loading saved song ' + gui_ctrls['songfile'])
-                songfiles = [f for f in listdir(song_save_path) if isfile(join(song_save_path, f))]
+                songfiles = [f for f in listdir(song_temp_path) if isfile(join(song_temp_path, f))]
                 if(gui_ctrls['songfile'] in songfiles):
                     #plyr_ctrls['key'] = wt.key
                     #plyr_ctrls['scale'] = wt.scale
-                    thr_plyr.load_song(tmp)
+                    thr_plyr.load_song(gui_ctrls['songfile'])
                 else:
                     logging.debug('songfile not in saved')
 
