@@ -15,6 +15,7 @@ class GuiThread(threading.Thread):
         self.gui_ctrls = _gui_ctrls
         self.io_ctrls = _io_ctrls
         self.mon_mode = False
+        self.last_cmd = 'NONE'
 
     def get_param(prompt_string):
         screen.clear()
@@ -34,6 +35,8 @@ class GuiThread(threading.Thread):
             _val_chg = False
             screen = curses.initscr()
             while(not self.stoprequest.isSet()):
+                #if(self.last_cmd != self.io_ctrls['cmd'] and self.io_ctrls['cmd'] != 'NONE'):
+                self.last_cmd = self.io_ctrls['cmd']
                 self.refresh_screen(screen,  self.gui_ctrls)
                 screen.addstr(14, 4, 'RcrdSynth#  ')
                 curses.echo()
@@ -120,7 +123,7 @@ class GuiThread(threading.Thread):
         screen.addstr(6, 18,'KNOB2  ' + str(ctrls['knob2']))
         screen.addstr(7, 18,'KNOB3  ' + str(ctrls['knob3']))
         screen.addstr(8, 18,'KNOB4  ' + str(ctrls['knob4']))
-        screen.addstr(9, 18,'MODE   ' + str(ctrls['mode']))
+        screen.addstr(9, 18,'CMD    ' + str(ctrls['cmd']))
         screen.addstr(10,18,'monitor mode (m)  ' + str(self.mon_mode))
 
     '''

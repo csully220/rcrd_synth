@@ -1,1 +1,1 @@
-enum e_menu_titles {TOP, SWITCHES, DLSONG, POWEROFF};
+enum e_menu_titles {TOP, SWITCHES, NEWSONG, POWEROFF};

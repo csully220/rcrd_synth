@@ -25,6 +25,8 @@ class WolfTonesSong:
         self.key = 60
         self.scale = []
         self.vld = Validator()
+        #self.chan_roles = [0 for i in range(10)]
+        self.ticks_per_beat = 0
 
         self.params = collections.OrderedDict( [
             ('genre','45'),   
@@ -106,17 +108,19 @@ class WolfTonesSong:
             else:
                 self.scale = [0]
             logging.debug(self.scale)
+            #self.chan_roles = [0 for i in range(10)]
             for trk in md.tracks:
                 #logging.debug('PARSING NEW TRACK '+ str(i))
                 for msg in trk:
                     try:
+                        #role_enc = 0
                         if(msg.type == 'program_change'):
                             inst = msg.program
                             chan = int(msg.channel)
                             role = None 
                             inst += 1
-                            logging.debug('inst: ' + str(inst))
-                            logging.debug('chan: ' + str(chan))
+                            #logging.debug('inst: ' + str(inst))
+                            #logging.debug('chan: ' + str(chan))
                             if inst == int(self.params['inst_1']):
                                 role_enc = int(self.params['role_1'])
                             if inst == int(self.params['inst_2']):
@@ -133,6 +137,7 @@ class WolfTonesSong:
                             else:
                                 role = 'perc'
                             trk.name = str(chan) + ':' + role
+                            #self.chan_roles[chan] = role
                             break
                     except:
                         pass
@@ -141,7 +146,7 @@ class WolfTonesSong:
             md.save(filename)
         
     def write_file(self, content, save_path):
-        fn = 'dl_song-{:%m-%d-%H:%M}'.format(datetime.datetime.now()) + '.mid'
+        fn = 'tmp_song-{:%m-%d-%H:%M}'.format(datetime.datetime.now()) + '.mid'
         #fn = self._nkm_encoded_id() + '.mid'
         #here we strip out any path elements, keeping only the filename so we only write in the saved song directory
         fn = save_path + fn 
@@ -150,15 +155,17 @@ class WolfTonesSong:
                 f.write(content)
         return fn
  
-    def set_params_by_id(self, enc_id):
+    def set_params_by_id(self, enc_id, load=False):
         toks = enc_id.split('-')
-        del toks[:2]
+        if(not load):
+            del toks[:2]
         i = 0
         for t in toks:
             self.params[self.params.keys()[i]] = t 
             #logging.debug('toks: ' + self.params.keys()[i] + ' ' + str(t))
             i += 1
 
+# filename - full path filname
     def load_file(self, filename):
         #fn = filename.split('/')
         #fn = fn[-1]
@@ -171,6 +178,8 @@ class WolfTonesSong:
             for msg in trk: 
                 if(msg.type == 'text'):
                     enc_id = msg.text
+                    #logging.debug('before mangled ' +  enc_id)
                     break
             if(enc_id):
-                self.set_params_by_id(enc_id)
+                self.set_params_by_id(enc_id, True)
+            self.analyze(filename)

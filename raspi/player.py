@@ -18,14 +18,15 @@ class PlayerThread(threading.Thread):
         self.name = 'Player'
         self.stoprequest = threading.Event()
         self.plyr_ctrls = _plyr_ctrls
+        self.chan_roles = [0 for i in range(10)]
         self.plyr_ctrls['songfile'] = songfile
-        self.chan_roles = [0 for i in range(16)] 
         self.midifile = MidiFile(_save_path + songfile)
         # 0 - drum fill
-        self.counter = []
+        self.counter = [0 for i in range(4)]
         self.wt = WolfTonesSong()
         self.save_path = _save_path
         self.load_song(songfile)
+        self.alt_meas = []
 
         #get the portname (system specific)
         env = socket.gethostname()
@@ -45,6 +46,12 @@ class PlayerThread(threading.Thread):
         self.stoprequest.set()
         super(PlayerThread, self).join(timeout)
 
+    def set_save_path(self, path, temp = False):
+        if(path):
+            self.save_path = path
+        if(temp):
+            self.save_path = path + 'temp' 
+
     def stop(self):
         self.plyr_ctrls['play'] = False
 
@@ -58,15 +65,19 @@ class PlayerThread(threading.Thread):
             self.wt.load_file(songfile)
             self.midifile = MidiFile(songfile)
             self.plyr_ctrls['songfile'] = filename
-            logging.debug(str(self.midifile.tracks))
+            #logging.debug(str(self.midifile.tracks))
             # length of a quarter note
             self.ticks_per_beat = self.midifile.ticks_per_beat
+            #self.chan_roles = [0 for i in range(10)]
             for trk in self.midifile.tracks:
                 s = trk.name.split(':')
                 chan = s[0]
                 role = s[1] 
                 #logging.debug('read  ' + chan + ' as ' + role)
                 self.chan_roles[int(chan)] = role
+                if(role[-3:] == '_ld'):
+                    logging.debug('making riff')
+                    self.make_riff(trk)
                 logging.debug('Channel ' + str(chan) + ' is ' + role)
                
     def new_song(self):
@@ -77,15 +88,20 @@ class PlayerThread(threading.Thread):
             songfile = fn 
             self.midifile = MidiFile(songfile)
             self.plyr_ctrls['songfile'] = songfile
-            logging.debug(str(self.midifile.tracks))
+            #logging.debug(str(self.midifile.tracks))
             # length of a quarter note
             self.ticks_per_beat = self.midifile.ticks_per_beat
+            #self.chan_roles = [0 for i in range(10)]
             for trk in self.midifile.tracks:
                 s = trk.name.split(':')
                 chan = s[0]
                 role = s[1]
                 #logging.debug('read  ' + chan + ' as ' + role)
                 self.chan_roles[int(chan)] = role
+                ld_role = len(re.match('ld', role)) > 0
+                if(ld_role):
+                    logging.debug('making riff')
+                    self.make_riff(trk)
                 logging.debug('Channel ' + str(chan) + ' is ' + role)
   
               
@@ -113,10 +129,22 @@ class PlayerThread(threading.Thread):
                             if(self.plyr_ctrls['drum_fill']):
                                 if(ch_roles[msg.channel] == 'perc'):
                                     df_msg = msg.copy()
-                                    df_msg.time = int(self.ticks_per_beat/8)
-                                    df_msg.note = 35
+                                    df_msg.time = int(self.ticks_per_beat/16)
+                                    df_msg.note = random.choice([35,36])
                                     df_msg.velocity = self.get_scaled_velocity(msg.velocity, 110)
                                     self.outport.send(df_msg)
+                            if(self.plyr_ctrls['lead_fill']):
+                                continue
+                                role = ch_roles[msg.channel]
+                                #if(len(self.alt_meas) > 1 and role[-3:] == '_ld'):
+                                if(role[-3:] == '_ld'):
+                                    logging.debug(len(self.alt_meas))
+                                    lf_msg = msg.copy()
+                                    lf_msg = self.alt_meas[self.counter[1]]
+                                    self.counter[1] += 1
+                                    if(self.counter[1] >= len(self.alt_meas)):
+                                        self.counter[1] = 0
+                                    self.outport.send(lf_msg)
      ############ SEND MIDI MESSAGE #######################################
                         self.outport.send(msg)
                     else:
@@ -137,3 +165,28 @@ class PlayerThread(threading.Thread):
              rtn_vel = ctrl_vel_ratio * msg_vel * 2
         #logging.debug('rtn_vel ' +  str(rtn_vel))
         return int(rtn_vel)
+
+    def make_riff(self, track):
+        ticks_sum = 0
+        msgs = []
+        self.alt_meas = []
+        if( not self.wt.scale):
+            tmp_scale = [0,2,1,2,2,2,2,1]
+        else:
+            tmp_scale = self.wt.scale
+        for i in range(36):
+            rand_note = random.randint(0,len(tmp_scale)-1)
+            steps = sum(tmp_scale[rand_note:-1])
+            logging.debug('steps ' + str(steps))
+            note = int(self.wt.key) + steps + random.randint(0,2)*12 
+            len_note = [1,2,4,8,16]
+            divisor = random.choice(len_note)
+        
+            time = int(self.ticks_per_beat/divisor)
+            #logging.debug('note ' + str(self.wt.key))
+            #logging.debug('time ' + str(time))
+            #logging.debug('rand_note ' + str(rand_note))
+        
+            msg = Message('note_on', note=60, time=100)
+            #msgs.append(msg.copy())
+            #msgs.append(msg.copy(time = msg.time*2))

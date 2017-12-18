@@ -18,8 +18,7 @@ class IoIntfThread(threading.Thread):
 
     sw_names = ['sw_right', 'sw_left', 'sw_78', 'sw_33', 'sw_start', 'sw_auto', 'sw_7', 'sw_12']
     knob_names = ['knob0', 'knob1', 'knob2', 'knob3', 'knob4']
-    modes = ['DEFAULT', 'ISOL_CH']
-    commands = ['NONE', 'PWROFF', 'NEWSONG']
+    commands = ['NONE', 'POWEROFF', 'NEWSONG']
 
     def __init__(self, _io_ctrls):
         super(IoIntfThread, self).__init__()
@@ -27,6 +26,9 @@ class IoIntfThread(threading.Thread):
         self.ser = serial.Serial('/dev/ttyACM0', 9600)
         self.stoprequest = threading.Event()
         self.io_ctrls = _io_ctrls
+        self.tmp_ctrls = {}
+        self.tmp_ctrls['cmd'] = 'NONE'
+        self.last_cmd = 'NONE'
 
     def get_readline(self):
         return bytearray(self.ser.readline())
@@ -42,35 +44,32 @@ class IoIntfThread(threading.Thread):
         try:
             tmp = self.ser.readline().strip()
             if(ord(tmp[0]) == 255):
-                rtn = True
-                self.io_ctrls['knob4'] = ord(tmp[1])
-                self.io_ctrls['knob3'] = ord(tmp[2])
-                self.io_ctrls['knob2'] = ord(tmp[3])
-                self.io_ctrls['knob1'] = ord(tmp[4])
-                self.io_ctrls['knob0'] = ord(tmp[5])
+                self.tmp_ctrls['knob4'] = ord(tmp[1])
+                self.tmp_ctrls['knob3'] = ord(tmp[2])
+                self.tmp_ctrls['knob2'] = ord(tmp[3])
+                self.tmp_ctrls['knob1'] = ord(tmp[4])
+                self.tmp_ctrls['knob0'] = ord(tmp[5])
                 #logging.debug('getting knob input')
                 sw = ord(tmp[6])
                 #logging.debug(str(sw))
                 for r in range(8):
                     #logging.debug(str(self.sw_names[r]))
                     if(sw & (int('00000001') << r)):
-                        self.io_ctrls[self.sw_names[r]] = True
+                        self.tmp_ctrls[self.sw_names[r]] = True
+                        #logging.debug(self.sw_names[r] + str(self.tmp_ctrls[self.sw_names[r]]))
                     else:
-                        self.io_ctrls[self.sw_names[r]] = False
+                        self.tmp_ctrls[self.sw_names[r]] = False
                 mb = ord(tmp[7])
                 #logging.debug(str(mb))
-                if(mb < 192):
-                    #logging.debug('msg byte is something')
-                    self.io_ctrls['mode'] = self.modes[mb]
    
-                elif(mb >= 192):
-                    self.io_ctrls['cmd'] = self.commands[mb - 192]
-                #logging.debug(str(mb))
+                self.tmp_ctrls['cmd'] = self.commands[mb]
 
-                return rtn 
+                #logging.debug('msg byte: ' + str(mb))
+                return True
         except:
             self.ser.reset_input_buffer()
             return False
+
 
     def close_port(self):
         try:
@@ -81,24 +80,33 @@ class IoIntfThread(threading.Thread):
     def run(self):
         prev_knob = [0 for i in range(5)]
         prev_sw = [0 for i in range(8)]
-        prev_mode = 'DEFAULT'
+        prev_cmd = 'NONE'
+
         logging.debug('Running IO thread...')
         while(not self.stoprequest.isSet()):
             if(self.unpack_serial()):
-                self.io_ctrls['val_chg'] = True 
+                #logging.debug('unpack serial')
+                #chgd = False
+                self.io_ctrls['val_chg'] = True
                 
                 for i in range(5):
-                    if(self.io_ctrls[self.knob_names[i]] != prev_knob[i]):
+                    if(self.tmp_ctrls[self.knob_names[i]] != prev_knob[i]):
+                        self.io_ctrls[self.knob_names[i]] = self.tmp_ctrls[self.knob_names[i]]
                         prev_knob[i] = self.io_ctrls[self.knob_names[i]]
+                        #chgd = True
 
                 for i in range(8):
-                    if(self.io_ctrls[self.sw_names[i]] != prev_sw[i]):
+                    if(self.tmp_ctrls[self.sw_names[i]] != prev_sw[i]):
+                        self.io_ctrls[self.sw_names[i]] = self.tmp_ctrls[self.sw_names[i]]
                         prev_sw[i] = self.io_ctrls[self.sw_names[i]]
+                        #chgd = True
 
-                if(prev_mode != self.io_ctrls['cmd']):
-                    prev_mode = self.io_ctrls['cmd']
+                if(self.tmp_ctrls['cmd'] != prev_cmd):
+                    self.io_ctrls['cmd'] = self.tmp_ctrls['cmd']
+                    prev_cmd = self.tmp_ctrls['cmd']
+                    #chgd = True
 
-                if(prev_mode != self.io_ctrls['mode']):
-                    prev_mode = self.io_ctrls['mode']
+                #logging.debug(self.io_ctrls['cmd'])
+                #self.io_ctrls['val_chg'] = chgd
 
             time.sleep(0.01)

@@ -7,7 +7,7 @@
 #define TOP_NUM_ITEMS 4
 #define SWITCHES_NUM_ITEMS 10
 #define PWROFF_NUM_ITEMS 2
-#define DLSONG_NUM_ITEMS 2
+#define NEWSONG_NUM_ITEMS 2
 
 class Menus
 {
@@ -36,7 +36,7 @@ private:
     char* knob_names[5] = {"KNOB1", "KNOB2", "KNOB3", "KNOB4", "KNOB5"};
     char* menu_items_top[TOP_NUM_ITEMS] = {"Switches", "Isolate Channel", "New Song", "Poweroff"};
     char* menu_items_pwroff[PWROFF_NUM_ITEMS] = {"Confirm poweroff", "Cancel"};
-    char* menu_items_dlsong[DLSONG_NUM_ITEMS] = {"Confirm new song", "Cancel"};
+    char* menu_items_dlsong[NEWSONG_NUM_ITEMS] = {"Confirm new song", "Cancel"};
     e_menu_titles current_menu;
 
     int checkBounds(int);

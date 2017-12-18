@@ -7,7 +7,7 @@
 //output_buf[6]   SWITCHES
 //output_buf[7]   MESSAGE BYTE
 
-byte output_buf[8] = {0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0};
+byte output_buf[8] = {0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 
 
@@ -36,7 +36,7 @@ void packMsgByte(byte msg){
 
 void packMsgByte(){
   //output_buf[7] = msg;
-  output_buf[7] = byte(0xC0);
+  output_buf[7] = byte(0x00);
 }
 //"12", "7", "AUTO", "START", "33","78", "LEFT", "RIGHT", "ROT ENC", "PROGRAM"
 // MSB  254    128      64     32   16     8        4         2         LSB

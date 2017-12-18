@@ -1,12 +1,9 @@
 #include "Menus.h"
 
-    //Modes
-    #define MSG_DEFAULT 0x00 // 1
-    #define MSG_ISO_CH  0x01 // 2
     //commands
-    #define MSG_NONE    0xC0 // 192
-    #define MSG_PWROFF  0xC1 // 193
-    #define MSG_DLSONG  0xC2 // 194
+    #define MSG_NONE    0x00 // 192
+    #define MSG_PWROFF  0x01 // 193
+    #define MSG_NEWSONG 0x02 // 194
 
     Menus::Menus(SerLCD& ser_lcd, LiquidCrystal_I2C& i2c_lcd): red_lcd(ser_lcd), blue_lcd(i2c_lcd){
       current_menu = TOP;
@@ -76,7 +73,7 @@
           case POWEROFF:
             red_lcd.print(menu_items_pwroff[idx]);
           break;
-          case DLSONG:
+          case NEWSONG:
             red_lcd.print(menu_items_dlsong[idx]);
           break;
         }
@@ -102,11 +99,11 @@
             else if(idx < 0)
               idx = PWROFF_NUM_ITEMS-1;
           break;
-          case DLSONG:
-            if(idx > DLSONG_NUM_ITEMS-1)
+          case NEWSONG:
+            if(idx > NEWSONG_NUM_ITEMS-1)
               idx = 0;
             else if(idx < 0)
-              idx = DLSONG_NUM_ITEMS-1;
+              idx = NEWSONG_NUM_ITEMS-1;
           break;
         }
         return idx;
@@ -114,18 +111,19 @@
     
     void Menus::select(){
       switch(current_menu) {
+        /************/
         case TOP:
           switch(index){
             case 0: //switches
               changeMenu(SWITCHES);
             break;
             case 1: //isolate channel
-              msg_byte = byte(MSG_ISO_CH);
-              has_msg = true;
+              //msg_byte = byte(MSG_ISO_CH);
+              //has_msg = true;
             break;
             case 2: //new song
-              changeMenu(DLSONG);
-              msg_byte = byte(MSG_DLSONG); 
+              changeMenu(NEWSONG);
+              //msg_byte = byte(MSG_NEWSONG); 
               has_msg = true;
             break;
             case 3: //poweroff
@@ -133,24 +131,31 @@
             break;
           }
         break;
+        /************/
         case SWITCHES:
           changeMenu(TOP);
         break;
+        /************/
         case POWEROFF:
+          // confirm
           if(index == 0){
             msg_byte = byte(MSG_PWROFF);
             has_msg = true;
+            changeMenu(TOP);
           }
+          // cancel
           else if(index == 1){
             changeMenu(TOP);
           }
         break;
-        case DLSONG:
-          if(index == 0){
-            msg_byte = byte(MSG_DLSONG);
+        /************/
+        case NEWSONG:
+          if(index == 0){ // confirm
+            msg_byte = byte(MSG_NEWSONG);
             has_msg = true;
+            changeMenu(TOP);
           }
-          else if(index == 1){
+          else if(index == 1){  // cancel
             changeMenu(TOP);
           }
         break;
@@ -166,7 +171,7 @@
     byte Menus::getMsgByte(){
       has_msg = false;
       byte rtn = msg_byte;
-      msg_byte = MSG_DEFAULT;
+      msg_byte = MSG_NONE;
       return rtn;
     }
 
